@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>輪式伸縮桿吊車吊掛流程</title>
+<title>越野式起重機吊掛流程</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -31,6 +31,19 @@ body{
   font-family:var(--font-body);font-size:14px;line-height:1.5;
   display:flex;flex-direction:column;overflow:hidden;
 }
+.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line)}
+.top h1{font-size:15px;font-weight:700;margin:0}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;max-width:100%}
+.seg button{
+  font:inherit;font-weight:700;color:var(--ink);background:var(--panel-2);border:0;border-right:1px solid var(--line);
+  padding:5px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;min-width:0;
+}
+.seg button:last-child{border-right:0}
+.seg button small{font-weight:400;font-size:11.5px;color:var(--muted)}
+.seg button:hover{background:var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#1b1a12}
+.seg button[aria-pressed="true"] small{color:#4a3d0a}
+.seg button:focus-visible{outline-offset:-3px}
 .main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 340px}
 .stage{position:relative;min-height:0;background:var(--sky);overflow:hidden}
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
@@ -132,9 +145,13 @@ button.b.primary{background:var(--accent);color:#1b1a12;border-color:var(--accen
 </style>
 </head>
 <body>
+<header class="top">
+  <h1>吊掛作業流程</h1>
+  <div class="seg" id="models" role="group" aria-label="車型"></div>
+</header>
 <div class="main">
   <div class="stage" id="stage">
-    <canvas id="gl" aria-label="輪式伸縮桿吊車 3D 場景，可拖曳旋轉視角"></canvas>
+    <canvas id="gl" aria-label="伸縮桿起重機 3D 場景，可拖曳旋轉視角"></canvas>
     <div class="hud">
       <div class="stepcard">
         <div class="eyebrow" id="stepNo">步驟 1 / 19</div>
@@ -170,17 +187,17 @@ button.b.primary{background:var(--accent);color:#1b1a12;border-color:var(--accen
       <div class="ctl"><label for="sSlew">上部旋轉</label><output id="oSlew"></output>
         <input id="sSlew" type="range" min="0" max="360" step="0.5"></div>
       <div class="ctl"><label for="sLuff">仰傾角</label><output id="oLuff"></output>
-        <input id="sLuff" type="range" min="0" max="80" step="0.5"></div>
+        <input id="sLuff" type="range" min="0" max="82" step="0.5"></div>
       <div class="ctl"><label for="sTele">伸縮桿</label><output id="oTele"></output>
         <input id="sTele" type="range" min="0" max="1" step="0.005"></div>
       <div class="ctl"><label for="sRope">勾頭上下（鋼索放出）</label><output id="oRope"></output>
-        <input id="sRope" type="range" min="1.6" max="34" step="0.05"></div>
+        <input id="sRope" type="range" min="1.3" max="27" step="0.05"></div>
     </section>
     <section>
       <h2>作業流程</h2>
       <ol class="steps" id="stepList"></ol>
     </section>
-    <p class="note">示意模型，尺寸與動作不對應特定機型。實際作業以該機額定荷重表與現場吊掛指揮為準。</p>
+    <p class="note" id="note"></p>
   </aside>
 </div>
 
@@ -212,61 +229,105 @@ button.b.primary{background:var(--accent);color:#1b1a12;border-color:var(--accen
 var D2R = Math.PI/180;
 var $ = function(id){ return document.getElementById(id); };
 
-/* ---------- geometry constants (metres) ---------- */
-var C = {
-  cx:-1.5, deckY:1.6,          // slewing centre on carrier
-  px:-1.6, py:1.3,             // boom foot pin, in upper-structure frame
-  L0:10.5, secLen:10.2, secStep:0.35, ext:7.8,
-  headX:0.2, headY:-0.4,       // rope drop point relative to boom tip
-  slingH:1.4, loadW:2.4, loadH:1.0, loadD:1.2,
-  ropeMin:1.6, ropeMax:34,
-  beamTravel:2.4, jackStroke:0.73, jackGap:0.55,
-  platH:5
+/* ---------- crane models (metres) ---------- */
+var RT_BASE = {
+  type:"rt",
+  cx:-0.3, deckY:1.46,         // slewing centre on carrier
+  px:-1.7, py:1.35, pz:-0.3,   // boom foot pin, in upper-structure frame
+  Lmin:6.5, ext:21, nSec:5, secLen:6.1, nose:0.07,
+  headX:0.15, headY:-0.3,      // rope drop point relative to boom tip
+  slingH:1.1, loadW:1.6, loadH:0.7, loadD:0.9, strapY:0.17,
+  ropeMin:1.3, ropeMax:27, hookTop:0.96, hookScale:0.8,
+  jackStroke:0.73, jackGap:0.55, platH:4,
+  cylA:[-0.4,0.3], cylAtt:[3.4,-0.3], barrelMax:2.15,
+  cones:[[6,5],[6,-5],[-7,-5],[2,-10.5],[-8.5,5],[3.5,6]],
+  cam:[21,14,24], target:[-1,5.5,0],
+  flow:{luffUp:55, ropeUp:2.5, telePick:0.4, hoistY:7.0, telePlace:0.6, luffPlace:58, travelY:7.4, clearY:10}
 };
+var MODELS = [
+  Object.assign({}, RT_BASE, {
+    id:"gr160n", label:"GR-160N", sub:"越野式 16 t",
+    luffMax:82.5, cylZ:[0], cylR:0.13, teleMode:"seq", jib:3.8,
+    jackZ:0.895, beamTravel:1.705,       // jack centres 1.79 m to 5.2 m
+    note:"依 GR-160N 公開規格建模：6 段桿 6.5–27.5 m（2、3 節同步，4、5、6 節同步）、仰角上限 82.5°、H 型駐腳張出幅 1.79–5.2 m、單支起伏油壓缸。軸距與車身外形為估計值，兩組桿節的先後順序為假設，未內建額定荷重表。"
+  }),
+  Object.assign({}, RT_BASE, {
+    id:"tr160m", label:"TR-160M", sub:"越野式 16 t",
+    luffMax:82, cylZ:[0.2,-0.2], cylR:0.1, teleMode:"sync", jib:3.5,
+    jackZ:0.8, beamTravel:1.8,           // 5.2 m fully extended
+    note:"依 TR-160M 公開規格建模：6 段桿 6.5–27.5 m、仰角上限 82°、H 型駐腳最大張出幅 5.2 m、雙起伏油壓缸。軸距、車身外形與收回時的駐腳寬度為估計值，桿節以同步伸出表示，未內建額定荷重表。"
+  }),
+  {
+    id:"truck", label:"卡車式", sub:"四軸通用示意", type:"truck",
+    cx:-1.5, deckY:1.6, px:-1.6, py:1.3, pz:0,
+    Lmin:11.55, ext:23.4, nSec:3, secLen:10.2, nose:0.35,
+    headX:0.2, headY:-0.4,
+    slingH:1.4, loadW:2.4, loadH:1.0, loadD:1.2, strapY:0.25,
+    ropeMin:1.6, ropeMax:34, hookTop:1.2, hookScale:1,
+    jackZ:1.1, beamTravel:2.4, jackStroke:0.73, jackGap:0.55, platH:5,
+    luffMax:80, cylA:[0.6,0.7], cylAtt:[5.5,-0.45], barrelMax:3.1, cylZ:[0], cylR:0.17, teleMode:"sync",
+    cones:[[9,6],[9,-6],[-12,-6],[2,-15],[-14,8],[4,9]],
+    cam:[30,20,34], target:[-2,8,0],
+    flow:{luffUp:50, ropeUp:4, telePick:0.3, hoistY:9.6, telePlace:0.7, luffPlace:58, travelY:10, clearY:14},
+    note:"通用四軸卡車式伸縮桿吊車示意，尺寸與動作不對應特定機型，未內建額定荷重表。"
+  }
+];
+var C = MODELS[0];
+
 function liftOf(outV){ return Math.max(0, outV*C.jackStroke - C.jackGap); }
-function boomLen(tele){ return C.L0 + 3*(C.secStep + C.ext*tele); }
+function boomLen(tele){ return C.Lmin + C.ext*tele; }
+function secExt(tele){
+  var e = C.ext*tele, n = C.nSec, out = [], i;
+  if (C.teleMode === "seq"){              // sections 2-3 together, then 4-5-6 together
+    var first = Math.min(e, C.ext*2/n), rest = e - first;
+    for (i=0;i<n;i++) out.push(i < 2 ? first/2 : rest/(n-2));
+  } else for (i=0;i<n;i++) out.push(e/n);
+  return out;
+}
 function fk(s){
   var a = s.luff*D2R, th = s.slew*D2R, L = boomLen(s.tele);
   var hx = L + C.headX, hy = C.headY;
   var x = C.px + hx*Math.cos(a) - hy*Math.sin(a);
   var y = C.py + hx*Math.sin(a) + hy*Math.cos(a);
   var lift = liftOf(s.outV);
-  return { L:L, radius:x, lift:lift,
-    hx: C.cx + x*Math.cos(th), hy: C.deckY + lift + y, hz: -x*Math.sin(th) };
+  return { L:L, radius:Math.hypot(x, C.pz), lift:lift,
+    hx: C.cx + x*Math.cos(th) + C.pz*Math.sin(th), hy: C.deckY + lift + y,
+    hz: -x*Math.sin(th) + C.pz*Math.cos(th) };
 }
 
-/* ---------- process steps ---------- */
+/* ---------- process steps (same sequence for every model) ---------- */
 var GROUPS = [
   {name:"吊掛準備", color:"var(--g0)"},
   {name:"對位掛勾", color:"var(--g1)"},
   {name:"吊運卸放", color:"var(--g2)"},
   {name:"收車",     color:"var(--g3)"}
 ];
-var restHook = C.loadH + C.slingH;
-var steps = [
-  {g:0, name:"車輛就位，確認地盤與作業範圍", dur:3,  set:{}},
-  {g:0, name:"全車駐腳水平外伸",             dur:6,  set:{outH:1}},
-  {g:0, name:"駐腳垂直伸出，頂升車身調平",   dur:6,  set:{outV:1}},
-  {g:1, name:"鬆勾，仰起吊桿",               dur:7,  set:{luff:50, rope:4}},
-  {g:1, name:"上部旋轉，對準吊物",           dur:7,  set:{slew:70}},
-  {g:1, name:"伸出伸縮桿到吊物正上方",       dur:6,  set:{tele:0.3}},
-  {g:1, name:"降勾，掛妥吊索",               dur:7,  set:{}, hookY:restHook, attach:true},
-  {g:2, name:"試吊：離地 30 cm",             dur:2.5,set:{}, hookY:restHook+0.3},
-  {g:2, name:"停留確認吊索、駐腳與剎車",     dur:2.5,set:{}},
-  {g:2, name:"起升到越障高度",               dur:6,  set:{}, hookY:9.6},
-  {g:2, name:"上部旋轉到卸放方位",           dur:10, set:{slew:250}},
-  {g:2, name:"伸桿並調整仰角到卸放半徑",     dur:8,  set:{tele:0.7, luff:58}, hookY:10},
-  {g:2, name:"降勾，吊物就位",               dur:7,  set:{}, hookY:C.platH+restHook, release:true},
-  {g:3, name:"卸勾，收勾",                   dur:5,  set:{}, hookY:14},
-  {g:3, name:"收回伸縮桿",                   dur:6,  set:{tele:0, rope:4}},
-  {g:3, name:"上部旋轉回正",                 dur:7,  set:{slew:360}},
-  {g:3, name:"伏下吊桿，固定勾頭",           dur:7,  set:{luff:0, rope:C.ropeMin}},
-  {g:3, name:"收回垂直駐腳",                 dur:5,  set:{outV:0}},
-  {g:3, name:"收回水平駐腳，作業結束",       dur:5,  set:{outH:0}}
-];
 var KEYS = ["outH","outV","slew","luff","tele","rope"];
-var total = 0, tAttach = 0, tRelease = 0, pick, place;
-(function build(){
+var steps = [], total = 0, tAttach = 0, tRelease = 0, pick, place, restHook = 0;
+function buildSteps(){
+  var F = C.flow; restHook = C.loadH + C.slingH;
+  steps = [
+    {g:0, name:"車輛就位，確認地盤與作業範圍", dur:3,  set:{}},
+    {g:0, name:"全車駐腳水平外伸",             dur:6,  set:{outH:1}},
+    {g:0, name:"駐腳垂直伸出，頂升車身調平",   dur:6,  set:{outV:1}},
+    {g:1, name:"鬆勾，仰起吊桿",               dur:7,  set:{luff:F.luffUp, rope:F.ropeUp}},
+    {g:1, name:"上部旋轉，對準吊物",           dur:7,  set:{slew:70}},
+    {g:1, name:"伸出伸縮桿到吊物正上方",       dur:6,  set:{tele:F.telePick}},
+    {g:1, name:"降勾，掛妥吊索",               dur:7,  set:{}, hookY:restHook, attach:true},
+    {g:2, name:"試吊：離地 30 cm",             dur:2.5,set:{}, hookY:restHook+0.3},
+    {g:2, name:"停留確認吊索、駐腳與剎車",     dur:2.5,set:{}},
+    {g:2, name:"起升到越障高度",               dur:6,  set:{}, hookY:F.hoistY},
+    {g:2, name:"上部旋轉到卸放方位",           dur:10, set:{slew:250}},
+    {g:2, name:"伸桿並調整仰角到卸放半徑",     dur:8,  set:{tele:F.telePlace, luff:F.luffPlace}, hookY:F.travelY},
+    {g:2, name:"降勾，吊物就位",               dur:7,  set:{}, hookY:C.platH+restHook, release:true},
+    {g:3, name:"卸勾，收勾",                   dur:5,  set:{}, hookY:F.clearY},
+    {g:3, name:"收回伸縮桿",                   dur:6,  set:{tele:0, rope:F.ropeUp}},
+    {g:3, name:"上部旋轉回正",                 dur:7,  set:{slew:360}},
+    {g:3, name:"伏下吊桿，固定勾頭",           dur:7,  set:{luff:0, rope:C.ropeMin}},
+    {g:3, name:"收回垂直駐腳",                 dur:5,  set:{outV:0}},
+    {g:3, name:"收回水平駐腳，作業結束",       dur:5,  set:{outH:0}}
+  ];
+  total = 0;
   var cur = {outH:0,outV:0,slew:0,luff:0,tele:0,rope:C.ropeMin};
   steps.forEach(function(st){
     var n = Object.assign({}, cur, st.set);
@@ -277,7 +338,7 @@ var total = 0, tAttach = 0, tRelease = 0, pick, place;
     if (st.attach)  { tAttach = st.t1;  pick  = {x:f.hx, y:st.hookY, z:f.hz}; }
     if (st.release) { tRelease = st.t1; place = {x:f.hx, y:st.hookY, z:f.hz}; }
   });
-})();
+}
 function stepIndexAt(t){
   for (var i=0;i<steps.length;i++) if (t < steps[i].t1) return i;
   return steps.length-1;
@@ -304,11 +365,11 @@ var camera = new THREE.PerspectiveCamera(42, 1, 0.5, 400);
 var controls = new THREE.OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.maxPolarAngle = Math.PI/2 - 0.03;
-controls.minDistance = 12; controls.maxDistance = 120;
+controls.minDistance = 7; controls.maxDistance = 120;
 function resetView(){
   var k = Math.max(1, 1.15/Math.max(0.5, camera.aspect));
-  camera.position.set(30*k, 20*k, 34*k);
-  controls.target.set(-2, 8, 0);
+  camera.position.set(C.cam[0]*k, C.cam[1]*k, C.cam[2]*k);
+  controls.target.set(C.target[0], C.target[1], C.target[2]);
   controls.update();
 }
 
@@ -327,107 +388,35 @@ var M = {
   steel: mat(0xb9c0c6, 0.35, 0.7), glass: mat(0x5d7f95, 0.2, 0.3),
   grey: mat(0x7c858c, 0.8), concrete: mat(0xb8b5ad, 0.95),
   load: mat(0x9d4f3a, 0.85), ground: mat(0xaab0a6, 1),
-  red: mat(0xd9482b, 0.6)
+  red: mat(0xd9482b, 0.6),
+  mark: new THREE.MeshBasicMaterial({color:0xf2b705})
 };
 function box(w,h,d,m,x,y,z,parent){
   var o = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), m);
   o.position.set(x,y,z); o.castShadow = true; o.receiveShadow = true;
-  (parent||scene).add(o); return o;
+  parent.add(o); return o;
 }
 function cyl(r,h,m,x,y,z,parent,seg){
   var o = new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg||24), m);
   o.position.set(x,y,z); o.castShadow = true; o.receiveShadow = true;
-  (parent||scene).add(o); return o;
+  parent.add(o); return o;
+}
+function wheel(r,w,x,z,parent){
+  cyl(r,w,M.black,x,r,z,parent,32).rotation.x = Math.PI/2;
+  cyl(r*0.45,w+0.02,M.steel,x,r,z,parent,16).rotation.x = Math.PI/2;
+}
+function dropGroup(g){
+  if (!g) return;
+  g.traverse(function(o){ if (o.geometry) o.geometry.dispose(); });
+  if (g.parent) g.parent.remove(g);
 }
 
-/* ground */
 var ground = new THREE.Mesh(new THREE.PlaneGeometry(400,400), M.ground);
 ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
 var grid = new THREE.GridHelper(120, 60, 0x8d948b, 0x9ba197);
 grid.position.y = 0.01; grid.material.transparent = true; grid.material.opacity = 0.55; scene.add(grid);
 
-/* pick zone marking + landing platform */
-(function site(){
-  var edge = new THREE.Mesh(new THREE.RingGeometry(2.3, 2.5, 4, 1), new THREE.MeshBasicMaterial({color:0xf2b705}));
-  edge.rotation.x = -Math.PI/2; edge.rotation.z = Math.PI/4;
-  edge.position.set(pick.x, 0.03, pick.z); scene.add(edge);
-  box(2.2,0.12,0.25,M.grey, pick.x, 0.06, pick.z-0.35);   // dunnage
-  box(2.2,0.12,0.25,M.grey, pick.x, 0.06, pick.z+0.35);
-  var pw = 6.4, pd = 5.2, H = C.platH;
-  box(pw,0.4,pd,M.concrete, place.x, H-0.2, place.z);
-  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(c){
-    box(0.45, H-0.4, 0.45, M.concrete, place.x + c[0]*(pw/2-0.4), (H-0.4)/2, place.z + c[1]*(pd/2-0.4));
-  });
-  // traffic cones around the working area
-  [[9,6],[9,-6],[-12,-6],[2,-15],[-14,8],[4,9]].forEach(function(p){
-    var cone = new THREE.Mesh(new THREE.ConeGeometry(0.22,0.7,12), M.red);
-    cone.position.set(p[0],0.35,p[1]); cone.castShadow = true; scene.add(cone);
-  });
-})();
-
-/* carrier */
-var carrier = new THREE.Group(); scene.add(carrier);
-box(12.2,0.9,2.5,M.yellow, -0.1,1.15,0, carrier);
-box(12.4,0.25,2.3,M.dark, -0.1,0.75,0, carrier);
-box(1.9,1.45,2.5,M.yellow, 5.1,1.6,0, carrier);                 // driving cab
-box(0.06,0.7,2.2,M.glass, 6.06,1.85,0, carrier);
-box(1.2,0.6,0.06,M.glass, 5.2,1.9,1.26, carrier);
-box(1.2,0.6,0.06,M.glass, 5.2,1.9,-1.26, carrier);
-[4.4,2.9,-2.9,-4.4].forEach(function(x){
-  [1.15,-1.15].forEach(function(z){
-    var w = cyl(0.6,0.45,M.black,x,0.6,z,carrier,28); w.rotation.x = Math.PI/2;
-    var h = cyl(0.25,0.47,M.steel,x,0.6,z,carrier,16); h.rotation.x = Math.PI/2;
-  });
-});
-/* outriggers: horizontal beam slides out, jack cylinder extends down */
-var outriggers = [];
-[1.5,-5.7].forEach(function(x){
-  box(0.75,0.5,2.5,M.dark, x,0.95,0, carrier);                  // beam box
-  [1,-1].forEach(function(side){
-    var beam = new THREE.Group(); beam.position.set(x + side*0.17, 0.95, 0); carrier.add(beam);
-    box(0.28,0.3,2.5,M.yellowDk, 0,0,0, beam);
-    box(0.36,0.75,0.36,M.dark, 0,0.12,side*1.1, beam);          // jack housing
-    var rod = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,1,16).translate(0,-0.5,0), M.steel);
-    rod.position.set(0,0,side*1.1); rod.castShadow = true; beam.add(rod);
-    var pad = cyl(0.36,0.08,M.dark, 0,0,side*1.1, beam);
-    outriggers.push({beam:beam, rod:rod, pad:pad, side:side});
-  });
-});
-
-/* upper structure (slews) */
-var upper = new THREE.Group(); upper.position.set(C.cx, C.deckY, 0); carrier.add(upper);
-cyl(1.15,0.3,M.dark, 0,0.15,0, upper,36);
-box(5.2,0.5,2.4,M.yellow, -1.0,0.55,0, upper);
-box(1.3,1.3,2.6,M.dark, -3.5,1.05,0, upper);                    // counterweight
-box(1.6,1.55,0.85,M.yellow, 0.9,1.55,0.95, upper);              // operator cab
-box(0.06,0.9,0.7,M.glass, 1.72,1.75,0.95, upper);
-box(1.2,0.8,0.06,M.glass, 0.95,1.8,1.39, upper);
-box(0.5,1.1,0.12,M.yellowDk, C.px,0.95,0.52, upper);            // boom foot brackets
-box(0.5,1.1,0.12,M.yellowDk, C.px,0.95,-0.52, upper);
-box(1.3,0.7,0.9,M.dark, -2.4,1.15,0, upper);                    // winch
-var winch = cyl(0.33,0.8,M.steel, -2.4,1.6,0, upper,20); winch.rotation.x = Math.PI/2;
-
-/* boom */
-var boomG = new THREE.Group(); boomG.position.set(C.px, C.py, 0); upper.add(boomG);
-box(C.L0,0.9,0.8,M.yellow, C.L0/2,0,0, boomG);
-var sections = [];
-[[0.76,0.66],[0.62,0.54],[0.48,0.42]].forEach(function(d,i){
-  var g = new THREE.Group(); boomG.add(g);
-  box(C.secLen,d[0],d[1], i%2 ? M.yellow : M.yellowDk, C.L0 - C.secLen/2, 0, 0, g);
-  sections.push(g);
-});
-(function head(){
-  var g = sections[2];
-  box(0.7,0.75,0.5,M.dark, C.L0+0.1,-0.15,0, g);
-  var s = cyl(0.22,0.3,M.steel, C.L0+C.headX-0.02, C.headY+0.18, 0, g, 20); s.rotation.x = Math.PI/2;
-})();
-/* luffing cylinder */
-var cylA = new THREE.Vector3(0.6,0.7,0);
-var luffBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,1,16).translate(0,0.5,0), M.dark);
-var luffRod = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,1,16).translate(0,0.5,0), M.steel);
-[luffBarrel,luffRod].forEach(function(o){ o.position.copy(cylA); o.castShadow = true; upper.add(o); });
-
-/* rope, hook block, load, slings */
+/* shared: rope, hook block, slings, working-radius ring */
 var rope = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,1,8).translate(0,-0.5,0), M.black);
 scene.add(rope);
 var hookG = new THREE.Group(); scene.add(hookG);
@@ -438,49 +427,177 @@ cyl(0.06,0.3,M.steel, 0,0.47,0, hookG,12);
   var t = new THREE.Mesh(new THREE.TorusGeometry(0.2,0.06,10,24,Math.PI*1.5), M.steel);
   t.position.set(0,0.22,0); t.rotation.z = Math.PI*0.75; t.castShadow = true; hookG.add(t);
 })();
-var load = new THREE.Group(); scene.add(load);
-box(C.loadW,C.loadH,C.loadD,M.load, 0,0,0, load);
-box(C.loadW+0.02,0.12,C.loadD+0.02,M.dark, 0,0.25,0, load);
-box(C.loadW+0.02,0.12,C.loadD+0.02,M.dark, 0,-0.25,0, load);
 var slingGeo = new THREE.BufferGeometry();
 slingGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(24), 3));
 var slings = new THREE.LineSegments(slingGeo, new THREE.LineBasicMaterial({color:0x22262a}));
 slings.frustumCulled = false; scene.add(slings);
-
-/* working-radius ring on the ground */
 var ring = new THREE.Mesh(new THREE.RingGeometry(0.992,1,160), new THREE.MeshBasicMaterial({color:0x2b6c8f, transparent:true, opacity:0.75, side:THREE.DoubleSide}));
 ring.rotation.x = -Math.PI/2; scene.add(ring);
 
+/* ---------- per-model builders ---------- */
+var R = null, siteG = null, load = null;
+
+function buildOutriggers(carrier, xs, o){
+  var list = [];
+  xs.forEach(function(x){
+    box(o.house[0],o.house[1],o.house[2],M.dark, x,0.95,0, carrier);
+    [1,-1].forEach(function(side){
+      var beam = new THREE.Group(); beam.position.set(x + side*o.off, 0.95, 0); carrier.add(beam);
+      box(o.beam[0],o.beam[1],o.beam[2],M.yellowDk, 0,0,0, beam);
+      box(o.jack,0.72,o.jack,M.dark, 0,0.1,side*C.jackZ, beam);
+      var rod = new THREE.Mesh(new THREE.CylinderGeometry(o.rod,o.rod,1,16).translate(0,-0.5,0), M.steel);
+      rod.position.set(0,0,side*C.jackZ); rod.castShadow = true; beam.add(rod);
+      var pad = cyl(o.pad,0.08,M.dark, 0,0,side*C.jackZ, beam);
+      list.push({beam:beam, rod:rod, pad:pad, side:side});
+    });
+  });
+  return list;
+}
+function buildBoom(upper, o){
+  var boomG = new THREE.Group(); boomG.position.set(C.px, C.py, C.pz); upper.add(boomG);
+  var baseLen = C.Lmin - C.nSec*C.nose, sections = [];
+  box(baseLen,o.base[0],o.base[1],M.yellow, baseLen/2,0,0, boomG);
+  o.secs.forEach(function(d,i){
+    var g = new THREE.Group(); boomG.add(g);
+    box(C.secLen,d[0],d[1], i%2 ? M.yellow : M.yellowDk, baseLen + (i+1)*C.nose - C.secLen/2, 0, 0, g);
+    sections.push(g);
+  });
+  var tip = sections[sections.length-1];
+  box(o.head[0],o.head[1],o.head[2],M.dark, C.Lmin+o.head[0]*0.12,-o.head[1]*0.2,0, tip);
+  cyl(o.sheave,o.head[2]*0.6,M.steel, C.Lmin+C.headX-0.02, C.headY+o.sheave*0.85, 0, tip, 20).rotation.x = Math.PI/2;
+  if (C.jib) box(C.jib,0.2,0.14,M.yellowDk, 0.9+C.jib/2,-0.12,-(o.base[1]/2+0.09), boomG);   // stowed jib
+  return {boomG:boomG, sections:sections};
+}
+function buildLuff(upper){
+  var list = [];
+  C.cylZ.forEach(function(dz){
+    var b = new THREE.Mesh(new THREE.CylinderGeometry(C.cylR,C.cylR,1,16).translate(0,0.5,0), M.dark);
+    var r = new THREE.Mesh(new THREE.CylinderGeometry(C.cylR*0.55,C.cylR*0.55,1,16).translate(0,0.5,0), M.steel);
+    [b,r].forEach(function(o){ o.position.set(C.cylA[0], C.cylA[1], C.pz+dz); o.castShadow = true; upper.add(o); });
+    list.push({b:b, r:r});
+  });
+  return list;
+}
+
+function buildTruck(){
+  var carrier = new THREE.Group();
+  box(12.2,0.9,2.5,M.yellow, -0.1,1.15,0, carrier);
+  box(12.4,0.25,2.3,M.dark, -0.1,0.75,0, carrier);
+  box(1.9,1.45,2.5,M.yellow, 5.1,1.6,0, carrier);                 // driving cab
+  box(0.06,0.7,2.2,M.glass, 6.06,1.85,0, carrier);
+  box(1.2,0.6,0.06,M.glass, 5.2,1.9,1.26, carrier);
+  box(1.2,0.6,0.06,M.glass, 5.2,1.9,-1.26, carrier);
+  [4.4,2.9,-2.9,-4.4].forEach(function(x){ wheel(0.6,0.45,x,1.15,carrier); wheel(0.6,0.45,x,-1.15,carrier); });
+  var outs = buildOutriggers(carrier, [1.5,-5.7], {house:[0.75,0.5,2.5], off:0.17, beam:[0.28,0.3,2.5], jack:0.36, rod:0.09, pad:0.36});
+  var upper = new THREE.Group(); upper.position.set(C.cx, C.deckY, 0); carrier.add(upper);
+  cyl(1.15,0.3,M.dark, 0,0.15,0, upper,36);
+  box(5.2,0.5,2.4,M.yellow, -1.0,0.55,0, upper);
+  box(1.3,1.3,2.6,M.dark, -3.5,1.05,0, upper);                    // counterweight
+  box(1.6,1.55,0.85,M.yellow, 0.9,1.55,0.95, upper);              // crane cab
+  box(0.06,0.9,0.7,M.glass, 1.72,1.75,0.95, upper);
+  box(1.2,0.8,0.06,M.glass, 0.95,1.8,1.39, upper);
+  box(0.5,1.1,0.12,M.yellowDk, C.px,0.95,0.52, upper);
+  box(0.5,1.1,0.12,M.yellowDk, C.px,0.95,-0.52, upper);
+  box(1.3,0.7,0.9,M.dark, -2.4,1.15,0, upper);
+  cyl(0.33,0.8,M.steel, -2.4,1.6,0, upper,20).rotation.x = Math.PI/2;
+  var b = buildBoom(upper, {base:[0.9,0.8], secs:[[0.76,0.66],[0.62,0.54],[0.48,0.42]], head:[0.7,0.75,0.5], sheave:0.22});
+  return {carrier:carrier, outriggers:outs, upper:upper, boomG:b.boomG, sections:b.sections, luff:buildLuff(upper)};
+}
+function buildRT(){
+  var gr = C.id === "gr160n";
+  var carrier = new THREE.Group();
+  box(6.6,0.6,1.4,M.dark, 0,1.1,0, carrier);                      // frame
+  box(6.6,0.08,2.2,M.yellow, 0,1.42,0, carrier);                  // deck
+  box(0.5,0.45,2.0,M.yellow, 3.05,1.2,0, carrier);
+  box(0.5,0.45,2.0,M.yellow, -3.05,1.2,0, carrier);
+  [1.65,-1.65].forEach(function(x){
+    wheel(0.61,0.34,x,0.93,carrier); wheel(0.61,0.34,x,-0.93,carrier);
+    if (gr){ box(1.5,0.06,0.42,M.dark, x,1.32,0.9, carrier); box(1.5,0.06,0.42,M.dark, x,1.32,-0.9, carrier); }
+  });
+  var outs = buildOutriggers(carrier, [3.05,-3.05], {house:[0.56,0.42,2.2], off:0.13, beam:[0.22,0.26,1.9], jack:0.3, rod:0.08, pad:0.3});
+  var upper = new THREE.Group(); upper.position.set(C.cx, C.deckY, 0); carrier.add(upper);
+  cyl(0.85,0.1,M.dark, 0,0.05,0, upper,36);
+  box(4.1,0.4,2.1,M.yellow, -0.55,0.3,0, upper);
+  if (gr){
+    box(0.75,0.95,2.1,M.dark, -2.55,0.8,0, upper);                // counterweight
+    box(1.3,0.75,0.8,M.yellow, -1.5,0.87,0.62, upper);            // engine cover behind cab
+    box(1.85,1.6,0.9,M.yellow, 0.95,1.1,0.62, upper);             // cab
+    box(0.06,1.15,0.76,M.glass, 1.9,1.25,0.62, upper);
+    box(1.45,0.85,0.06,M.glass, 1.0,1.38,1.08, upper);
+    box(1.45,0.85,0.06,M.glass, 1.0,1.38,0.16, upper);
+  } else {
+    box(0.6,0.85,2.1,M.dark, -2.6,0.75,0, upper);
+    box(1.7,1.45,0.85,M.yellow, 0.9,1.03,0.62, upper);
+    box(0.06,0.8,0.7,M.glass, 1.77,1.25,0.62, upper);
+    box(1.2,0.7,0.06,M.glass, 0.95,1.3,1.06, upper);
+    box(1.2,0.7,0.06,M.glass, 0.95,1.3,0.18, upper);
+  }
+  box(0.45,1.1,0.1,M.yellowDk, C.px,0.95,C.pz+0.33, upper);       // boom foot brackets
+  box(0.45,1.1,0.1,M.yellowDk, C.px,0.95,C.pz-0.33, upper);
+  cyl(0.26,0.6,M.steel, -0.9,0.76,C.pz, upper,20).rotation.x = Math.PI/2;
+  var b = buildBoom(upper, {base:[0.62,0.5], secs:[[0.56,0.44],[0.5,0.39],[0.44,0.34],[0.38,0.29],[0.32,0.24]], head:[0.5,0.55,0.34], sheave:0.16});
+  return {carrier:carrier, outriggers:outs, upper:upper, boomG:b.boomG, sections:b.sections, luff:buildLuff(upper)};
+}
+function buildSite(){
+  var g = new THREE.Group();
+  var r = Math.max(C.loadW, C.loadD)*0.75 + 0.5;
+  var edge = new THREE.Mesh(new THREE.RingGeometry(r, r+0.16, 4, 1), M.mark);
+  edge.rotation.x = -Math.PI/2; edge.rotation.z = Math.PI/4;
+  edge.position.set(pick.x, 0.03, pick.z); g.add(edge);
+  box(C.loadW*0.92,0.1,0.2,M.grey, pick.x, 0.05, pick.z-C.loadD*0.3, g);     // dunnage
+  box(C.loadW*0.92,0.1,0.2,M.grey, pick.x, 0.05, pick.z+C.loadD*0.3, g);
+  var pw = C.loadW*1.5 + 2.6, pd = C.loadD*1.5 + 3, H = C.platH;
+  box(pw,0.36,pd,M.concrete, place.x, H-0.18, place.z, g);
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(c){
+    box(0.42, H-0.36, 0.42, M.concrete, place.x + c[0]*(pw/2-0.38), (H-0.36)/2, place.z + c[1]*(pd/2-0.38), g);
+  });
+  C.cones.forEach(function(p){
+    var cone = new THREE.Mesh(new THREE.ConeGeometry(0.2,0.65,12), M.red);
+    cone.position.set(p[0],0.325,p[1]); cone.castShadow = true; g.add(cone);
+  });
+  return g;
+}
+function buildLoad(){
+  var g = new THREE.Group();
+  box(C.loadW,C.loadH,C.loadD,M.load, 0,0,0, g);
+  box(C.loadW+0.02,0.12,C.loadD+0.02,M.dark, 0,C.strapY,0, g);
+  box(C.loadW+0.02,0.12,C.loadD+0.02,M.dark, 0,-C.strapY,0, g);
+  return g;
+}
+
 /* ---------- state + apply ---------- */
-var state = stateAt(0), time = 0, playing = false, manual = false;
+var state = null, time = 0, playing = false, manual = false;
 var UP = new THREE.Vector3(0,1,0), tmp = new THREE.Vector3();
 var last = {};
 
 function apply(){
   var s = state, f = fk(s), a = s.luff*D2R;
-  carrier.position.y = f.lift;
+  R.carrier.position.y = f.lift;
   var jackExt = s.outV*C.jackStroke;
-  outriggers.forEach(function(o){
+  R.outriggers.forEach(function(o){
     o.beam.position.z = o.side*s.outH*C.beamTravel;
     var len = 0.4 + jackExt;
     o.rod.scale.y = len; o.pad.position.y = -len + 0.04;
   });
-  upper.rotation.y = s.slew*D2R;
-  boomG.rotation.z = a;
-  var stepX = C.secStep + C.ext*s.tele;
-  sections.forEach(function(g,i){ g.position.x = (i+1)*stepX; });
+  R.upper.rotation.y = s.slew*D2R;
+  R.boomG.rotation.z = a;
+  var ex = secExt(s.tele), cum = 0;
+  R.sections.forEach(function(g,i){ cum += ex[i]; g.position.x = cum; });
 
-  var bx = C.px + 5.5*Math.cos(a) + 0.45*Math.sin(a), by = C.py + 5.5*Math.sin(a) - 0.45*Math.cos(a);
-  tmp.set(bx - cylA.x, by - cylA.y, 0);
+  var ax = C.cylAtt[0], ay = C.cylAtt[1];
+  var bx = C.px + ax*Math.cos(a) - ay*Math.sin(a), by = C.py + ax*Math.sin(a) + ay*Math.cos(a);
+  tmp.set(bx - C.cylA[0], by - C.cylA[1], 0);
   var cl = tmp.length(); tmp.normalize();
-  luffBarrel.quaternion.setFromUnitVectors(UP, tmp); luffRod.quaternion.copy(luffBarrel.quaternion);
-  luffBarrel.scale.y = Math.min(3.1, cl*0.96); luffRod.scale.y = cl;
+  R.luff.forEach(function(c){
+    c.b.quaternion.setFromUnitVectors(UP, tmp); c.r.quaternion.copy(c.b.quaternion);
+    c.b.scale.y = Math.min(C.barrelMax, cl*0.96); c.r.scale.y = cl;
+  });
 
   var attached = time >= tAttach && time < tRelease;
   var minHook = attached ? restHook : 0.25;
   var hookY = Math.min(f.hy - C.ropeMin, Math.max(minHook, f.hy - s.rope));
   rope.position.set(f.hx, f.hy, f.hz);
-  rope.scale.y = Math.max(0.01, f.hy - (hookY + 1.2));
+  rope.scale.y = Math.max(0.01, f.hy - (hookY + C.hookTop));
   hookG.position.set(f.hx, hookY, f.hz);
 
   var lp = attached ? {x:f.hx, y:hookY, z:f.hz} : (time < tAttach ? pick : place);
@@ -490,12 +607,12 @@ function apply(){
   if (attached){
     var p = slingGeo.attributes.position.array, i = 0;
     [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(c){
-      p[i++]=f.hx; p[i++]=hookY+0.12; p[i++]=f.hz;
-      p[i++]=lp.x + c[0]*(C.loadW/2-0.15); p[i++]=topY; p[i++]=lp.z + c[1]*(C.loadD/2-0.1);
+      p[i++]=f.hx; p[i++]=hookY+0.1; p[i++]=f.hz;
+      p[i++]=lp.x + c[0]*(C.loadW/2-0.12); p[i++]=topY; p[i++]=lp.z + c[1]*(C.loadD/2-0.08);
     });
     slingGeo.attributes.position.needsUpdate = true;
   }
-  var r = Math.max(0.5, Math.abs(f.radius));
+  var r = Math.max(0.5, f.radius);
   ring.scale.set(r, r, 1); ring.position.set(C.cx, 0.025, 0);
 
   last = {f:f, hookY:hookY, attached:attached, jackExt:jackExt};
@@ -505,10 +622,10 @@ function apply(){
 /* ---------- UI ---------- */
 var sliders = {outH:$("sOutH"), outV:$("sOutV"), slew:$("sSlew"), luff:$("sLuff"), tele:$("sTele"), rope:$("sRope")};
 var outs = {outH:$("oOutH"), outV:$("oOutV"), slew:$("oSlew"), luff:$("oLuff"), tele:$("oTele"), rope:$("oRope")};
-var tl = $("timeline"); tl.max = total;
-var segEls = [], stepBtns = [], lastStep = -1;
+var tl = $("timeline");
+var segEls = [], stepBtns = [], modelBtns = [], lastStep = -1;
 
-(function buildUI(){
+function buildUI(){
   var segs = $("segs"), list = $("stepList"), groups = $("groups"), gDur = [0,0,0,0], gPrev = -1;
   steps.forEach(function(st,i){
     var e = document.createElement("i");
@@ -522,7 +639,7 @@ var segEls = [], stepBtns = [], lastStep = -1;
     }
     var li = document.createElement("li"), b = document.createElement("button"), n = document.createElement("span");
     b.type = "button"; n.textContent = i+1; b.appendChild(n); b.appendChild(document.createTextNode(st.name));
-    b.addEventListener("click", function(){ seek(st.t0 + 0.001); setPlaying(true); });
+    b.addEventListener("click", function(){ seek(steps[i].t0 + 0.001); setPlaying(true); });
     li.appendChild(b); list.appendChild(li); stepBtns.push(b);
   });
   GROUPS.forEach(function(g,i){
@@ -530,20 +647,47 @@ var segEls = [], stepBtns = [], lastStep = -1;
     s.style.flex = gDur[i] + " 0 0"; s.style.borderColor = g.color; s.textContent = g.name;
     groups.appendChild(s);
   });
-})();
+  var bar = $("models");
+  MODELS.forEach(function(m){
+    var b = document.createElement("button"), sm = document.createElement("small");
+    b.type = "button"; b.id = "model-" + m.id; b.textContent = m.label; sm.textContent = m.sub; b.appendChild(sm);
+    b.addEventListener("click", function(){ if (C !== m) setModel(m, true); });
+    bar.appendChild(b); modelBtns.push(b);
+  });
+}
+
+function setModel(m, keepTime){
+  C = m;
+  buildSteps();
+  if (R) dropGroup(R.carrier);
+  dropGroup(siteG); dropGroup(load);
+  R = m.type === "truck" ? buildTruck() : buildRT();
+  scene.add(R.carrier);
+  siteG = buildSite(); scene.add(siteG);
+  load = buildLoad(); scene.add(load);
+  hookG.scale.setScalar(C.hookScale);
+  sliders.luff.max = C.luffMax; sliders.rope.min = C.ropeMin; sliders.rope.max = C.ropeMax;
+  tl.max = total;
+  $("note").textContent = C.note + "實際作業以該機荷重表與現場吊掛指揮為準。";
+  modelBtns.forEach(function(b,i){ b.setAttribute("aria-pressed", MODELS[i] === m ? "true" : "false"); });
+  if (!keepTime) time = 0;
+  manual = false; lastStep = -1;
+  state = stateAt(time);
+  resetView(); apply();
+}
 
 function fmt(v,d){ return v.toFixed(d==null?1:d); }
 function updateUI(){
   var s = state, f = last.f;
   KEYS.forEach(function(k){ if (document.activeElement !== sliders[k]) sliders[k].value = s[k]; });
-  outs.outH.textContent = Math.round(s.outH*100) + " %";
+  outs.outH.textContent = "張出幅 " + fmt(2*(C.jackZ + C.beamTravel*s.outH), 2) + " m";
   outs.outV.textContent = Math.round(s.outV*100) + " %";
-  outs.slew.textContent = fmt(s.slew % 360 === 0 && s.slew > 0 ? 360 : s.slew, 0) + "°";
+  outs.slew.textContent = fmt(s.slew, 0) + "°";
   outs.luff.textContent = fmt(s.luff) + "°";
   outs.tele.textContent = fmt(f.L) + " m";
   outs.rope.textContent = fmt(f.hy - last.hookY) + " m";
   $("rLen").textContent = fmt(f.L); $("rLuff").textContent = fmt(s.luff);
-  $("rRad").textContent = fmt(Math.abs(f.radius)); $("rSlew").textContent = fmt(s.slew % 360, 0);
+  $("rRad").textContent = fmt(f.radius); $("rSlew").textContent = fmt(s.slew % 360, 0);
   $("rHook").textContent = fmt(last.hookY);
 
   var co = $("chipOut"), grounded = last.jackExt >= C.jackGap - 0.001, ready = s.outH > 0.99 && s.outV > 0.99;
@@ -611,7 +755,8 @@ function resize(){
 }
 if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
 window.addEventListener("resize", resize);
-resize(); resetView(); apply();
+resize();
+buildSteps(); buildUI(); setModel(MODELS[0], false);
 
 var prevT = performance.now();
 function frame(now){
