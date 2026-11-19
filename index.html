@@ -160,6 +160,7 @@ button.b.primary{background:var(--accent);color:#1b1a12;border-color:var(--accen
       <div class="chips">
         <span class="chip" id="chipOut">駐腳未伸出</span>
         <span class="chip" id="chipLoad">吊物未掛勾</span>
+        <span class="chip" id="chipSig">指揮手：待命</span>
         <span class="chip on" id="chipManual" hidden>手動調整中，拖時間軸可回到流程</span>
         <span class="chip warn" id="chipWarn" hidden>駐腳未完全伸出並頂升，不得起吊</span>
       </div>
@@ -241,7 +242,7 @@ var RT_BASE = {
   jackStroke:0.73, jackGap:0.55, platH:4,
   cylA:[-0.4,0.3], cylAtt:[3.4,-0.3], barrelMax:2.15,
   cones:[[6,5],[6,-5],[-7,-5],[2,-10.5],[-8.5,5],[3.5,6]],
-  cam:[21,14,24], target:[-1,5.5,0],
+  cam:[21,14,24], target:[-1,5.5,0], signal:[10.5,2.5],
   flow:{luffUp:55, ropeUp:2.5, telePick:0.4, hoistY:7.0, telePlace:0.6, luffPlace:58, travelY:7.4, clearY:10}
 };
 var MODELS = [
@@ -267,7 +268,7 @@ var MODELS = [
     jackZ:1.1, beamTravel:2.4, jackStroke:0.73, jackGap:0.55, platH:5,
     luffMax:80, cylA:[0.6,0.7], cylAtt:[5.5,-0.45], barrelMax:3.1, cylZ:[0], cylR:0.17, teleMode:"sync",
     cones:[[9,6],[9,-6],[-12,-6],[2,-15],[-14,8],[4,9]],
-    cam:[30,20,34], target:[-2,8,0],
+    cam:[30,20,34], target:[-2,8,0], signal:[15.5,3],
     flow:{luffUp:50, ropeUp:4, telePick:0.3, hoistY:9.6, telePlace:0.7, luffPlace:58, travelY:10, clearY:14},
     note:"通用四軸卡車式伸縮桿吊車示意，尺寸與動作不對應特定機型，未內建額定荷重表。"
   }
@@ -433,6 +434,88 @@ var slings = new THREE.LineSegments(slingGeo, new THREE.LineBasicMaterial({color
 slings.frustumCulled = false; scene.add(slings);
 var ring = new THREE.Mesh(new THREE.RingGeometry(0.992,1,160), new THREE.MeshBasicMaterial({color:0x2b6c8f, transparent:true, opacity:0.75, side:THREE.DoubleSide}));
 ring.rotation.x = -Math.PI/2; scene.add(ring);
+
+/* signalman: stands outside the working radius, facing the crane */
+var sigG = new THREE.Group(), arms = {}; scene.add(sigG);
+(function(){
+  var vest = mat(0xff7a1a, 0.7), trousers = mat(0x2c3e57, 0.8), skin = mat(0xe0b08c, 0.8), white = mat(0xf4f4f0, 0.6);
+  box(0.15,0.82,0.17,trousers, 0.11,0.41,0, sigG);
+  box(0.15,0.82,0.17,trousers, -0.11,0.41,0, sigG);
+  box(0.44,0.58,0.25,vest, 0,1.11,0, sigG);
+  box(0.46,0.07,0.26,white, 0,1.05,0, sigG);                       // reflective band
+  var head = new THREE.Mesh(new THREE.SphereGeometry(0.12,16,12), skin);
+  head.position.set(0,1.56,0); head.castShadow = true; sigG.add(head);
+  var helmet = new THREE.Mesh(new THREE.SphereGeometry(0.145,16,10,0,Math.PI*2,0,Math.PI/2), M.yellow);
+  helmet.position.set(0,1.58,0); helmet.castShadow = true; sigG.add(helmet);
+  box(0.2,0.025,0.12,M.yellow, 0,1.585,0.16, sigG);                // helmet peak, marks the front
+  [["R",-1],["L",1]].forEach(function(a){
+    var sh = new THREE.Group(); sh.position.set(a[1]*0.28,1.36,0); sigG.add(sh);
+    box(0.11,0.32,0.11,vest, 0,-0.15,0, sh);
+    var el = new THREE.Group(); el.position.set(0,-0.31,0); sh.add(el);
+    box(0.095,0.3,0.095,skin, 0,-0.15,0, el);
+    box(0.12,0.13,0.12,white, 0,-0.35,0, el);                      // glove
+    arms[a[0]] = {sh:sh, el:el, cur:[0,0,0,0]};
+  });
+  sigG.scale.setScalar(1.12);
+})();
+var sig = {type:"idle", dir:1, arm:"R"}, sigAt = -1e9, prevS = null, sigText = "";
+var SIG_NAMES = {idle:"待命", out:"駐腳作業，監看", stop:"停止", slew:"旋轉（手指迴轉方向）"};
+function placeSignalman(){
+  sigG.position.set(C.signal[0], 0, C.signal[1]);
+  sigG.rotation.y = Math.atan2(C.cx - C.signal[0], -C.signal[1]);
+}
+function noteMotion(s, hookY){
+  if (prevS){
+    var dS = s.slew - prevS.slew, dT = (s.tele - prevS.tele)*C.ext, dL = s.luff - prevS.luff, dH = hookY - prevS.hookY;
+    var dO = Math.abs(s.outH - prevS.outH) + Math.abs(s.outV - prevS.outV), t = null, d = 1;
+    if (Math.abs(dS) > 0.002){ t = "slew"; d = dS; }
+    else if (Math.abs(dT) > 0.0005){ t = "tele"; d = dT; }
+    else if (Math.abs(dL) > 0.002){ t = "luff"; d = dL; }
+    else if (Math.abs(dH) > 0.0003){ t = "hoist"; d = dH; }
+    else if (dO > 0.0002){ t = "out"; }
+    if (t){
+      sig.type = t; sig.dir = d > 0 ? 1 : -1; sigAt = performance.now();
+      if (t === "slew"){           // point with the arm on the side the boom tip is moving toward
+        var th = s.slew*D2R, ry = sigG.rotation.y;
+        var tx = -Math.sin(th)*sig.dir, tz = -Math.cos(th)*sig.dir;
+        sig.arm = (tx*-Math.cos(ry) + tz*Math.sin(ry)) > 0 ? "R" : "L";
+      }
+    }
+  }
+  prevS = {slew:s.slew, tele:s.tele, luff:s.luff, outH:s.outH, outV:s.outV, hookY:hookY};
+}
+function animSignal(now){
+  var type = now - sigAt < 700 ? sig.type : (last.attached ? "stop" : "idle");
+  var t = now/1000, w = 0.5 + 0.5*Math.sin(t*7), up = sig.dir > 0;
+  var P = {R:[0,0,0,0], L:[0,0,0,0]}, a = "R", text;     // [shoulder x, shoulder z, elbow x, elbow z] in degrees, right-arm signs
+  if (type === "hoist"){
+    text = up ? "吊升" : "下降";
+    P.R = up ? [0,-90, 20*Math.sin(t*7), -90 + 15*Math.cos(t*7)] : [12*Math.sin(t*7), -45 + 8*Math.cos(t*7), 0, 0];
+  } else if (type === "luff"){
+    text = up ? "仰桿" : "伏桿";
+    P.R = [0, up ? -90 - 30*w : -90 + 30*w, 0, 0];
+  } else if (type === "tele"){
+    text = up ? "伸桿" : "縮桿";
+    var p = (t*0.9) % 1, spread = up ? 5 + 40*p : 45 - 40*p;
+    P.R = [-75, -spread, 0, 0]; P.L = [-75, -spread, 0, 0];
+  } else if (type === "slew"){
+    text = SIG_NAMES.slew; a = sig.arm; P[a] = [0, -90, 0, -22*w];
+  } else if (type === "stop"){
+    text = SIG_NAMES.stop; P.R = [0, -155, 0, 0];
+  } else text = SIG_NAMES[type];
+  ["R","L"].forEach(function(k){
+    var arm = arms[k], m = k === "R" ? 1 : -1, c = arm.cur, tg = P[k];
+    for (var i=0;i<4;i++) c[i] += (tg[i] - c[i])*0.22;
+    arm.sh.rotation.set(c[0]*D2R, 0, c[1]*m*D2R);
+    arm.el.rotation.set(c[2]*D2R, 0, c[3]*m*D2R);
+  });
+  if (text !== sigText){
+    sigText = text;
+    var chip = $("chipSig");
+    chip.textContent = "指揮手：" + text;
+    chip.className = "chip" + (type === "idle" || type === "out" ? "" : type === "stop" ? " warn" : " on");
+  }
+}
 
 /* ---------- per-model builders ---------- */
 var R = null, siteG = null, load = null;
@@ -615,6 +698,7 @@ function apply(){
   var r = Math.max(0.5, f.radius);
   ring.scale.set(r, r, 1); ring.position.set(C.cx, 0.025, 0);
 
+  noteMotion(s, hookY);
   last = {f:f, hookY:hookY, attached:attached, jackExt:jackExt};
   updateUI();
 }
@@ -666,9 +750,10 @@ function setModel(m, keepTime){
   siteG = buildSite(); scene.add(siteG);
   load = buildLoad(); scene.add(load);
   hookG.scale.setScalar(C.hookScale);
+  placeSignalman(); prevS = null;
   sliders.luff.max = C.luffMax; sliders.rope.min = C.ropeMin; sliders.rope.max = C.ropeMax;
   tl.max = total;
-  $("note").textContent = C.note + "實際作業以該機荷重表與現場吊掛指揮為準。";
+  $("note").textContent = C.note + "指揮手手勢為簡化示意。實際作業以該機荷重表與現場吊掛指揮為準。";
   modelBtns.forEach(function(b,i){ b.setAttribute("aria-pressed", MODELS[i] === m ? "true" : "false"); });
   if (!keepTime) time = 0;
   manual = false; lastStep = -1;
@@ -766,6 +851,7 @@ function frame(now){
     if (time >= total){ time = total; setPlaying(false); }
     state = stateAt(time); apply();
   }
+  animSignal(now);
   controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
