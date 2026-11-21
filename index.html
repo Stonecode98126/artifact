@@ -101,6 +101,7 @@ body{
 .steps button:hover{background:var(--panel-2)}
 .steps button[aria-current="step"]{background:var(--panel-2);box-shadow:inset 3px 0 0 var(--accent)}
 .note{font-size:12px;color:var(--muted);margin:0}
+.note a{color:var(--accent)}
 
 .bar{
   border-top:1px solid var(--line);background:var(--panel);
@@ -201,6 +202,7 @@ button.b.primary{background:var(--accent);color:#1b1a12;border-color:var(--accen
       <ol class="steps" id="stepList"></ol>
     </section>
     <p class="note" id="note"></p>
+    <p class="note"><span data-i18n="contact">聯絡信箱</span>：<a href="mailto:owen163@gmail.com">owen163@gmail.com</a></p>
   </aside>
 </div>
 
@@ -244,7 +246,7 @@ var RT_BASE = {
   jackStroke:0.73, jackGap:0.55, platH:4,
   cylA:[-0.4,0.3], cylAtt:[3.4,-0.3], barrelMax:2.15,
   cones:[[6,5],[6,-5],[-7,-5],[2,-10.5],[-8.5,5],[3.5,6]],
-  cam:[21,14,24], target:[-1,5.5,0], signal:[10.5,2.5],
+  cam:[21,14,24], target:[-1,5.5,0], signal:[10.5,2.5], mail:[6.5,9.5,9],
   flow:{luffUp:55, ropeUp:2.5, telePick:0.4, hoistY:7.0, telePlace:0.6, luffPlace:58, travelY:7.4, clearY:10}
 };
 var MODELS = [
@@ -270,7 +272,7 @@ var MODELS = [
     jackZ:1.1, beamTravel:2.4, jackStroke:0.73, jackGap:0.55, platH:5,
     luffMax:80, cylA:[0.6,0.7], cylAtt:[5.5,-0.45], barrelMax:3.1, cylZ:[0], cylR:0.17, teleMode:"sync",
     cones:[[9,6],[9,-6],[-12,-6],[2,-15],[-14,8],[4,9]],
-    cam:[30,20,34], target:[-2,8,0], signal:[15.5,3],
+    cam:[30,20,34], target:[-2,8,0], signal:[15.5,3], mail:[9,14,13],
     flow:{luffUp:50, ropeUp:4, telePick:0.3, hoistY:9.6, telePlace:0.7, luffPlace:58, travelY:10, clearY:14},
     note:"通用四軸卡車式伸縮桿吊車示意，尺寸與動作不對應特定機型，未內建額定荷重表。"
   }
@@ -304,7 +306,7 @@ var I18N = {
 "zh-Hant": {
   groups:["吊掛準備","對位掛勾","吊運卸放","收車"],
   steps:["車輛就位，確認地盤與作業範圍","全車駐腳水平外伸","駐腳垂直伸出，頂升車身調平","鬆勾，仰起吊桿","上部旋轉，對準吊物","伸出伸縮桿到吊物正上方","降勾，掛妥吊索","試吊：離地 30 cm","停留確認吊索、駐腳與剎車","起升到越障高度","上部旋轉到卸放方位","伸桿並調整仰角到卸放半徑","降勾，吊物就位","卸勾，收勾","收回伸縮桿","上部旋轉回正","伏下吊桿，固定勾頭","收回垂直駐腳","收回水平駐腳，作業結束"],
-  ui:{title:"吊掛作業流程", model:"車型", lang:"語言", scene:"伸縮桿起重機 3D 場景，可拖曳旋轉視角", step:"步驟 {0} / {1}　{2}",
+  ui:{title:"吊掛作業流程", contact:"聯絡信箱", model:"車型", lang:"語言", scene:"伸縮桿起重機 3D 場景，可拖曳旋轉視角", step:"步驟 {0} / {1}　{2}",
     manual:"手動調整中，拖時間軸可回到流程", warn:"駐腳未完全伸出並頂升，不得起吊",
     rLen:"桿長", rLuff:"仰角", rRad:"作業半徑", rSlew:"旋轉角", rHook:"勾頭高度", resetView:"重設視角",
     hOut:"駐腳", hUpper:"上部機構", hFlow:"作業流程",
@@ -322,7 +324,7 @@ var I18N = {
 "zh-Hans": {
   groups:["吊装准备","对位挂钩","吊运卸放","收车"],
   steps:["车辆就位，确认地基与作业范围","全车支腿水平伸出","支腿垂直伸出，顶升车身并调平","松钩，起臂","回转对准吊物","伸出吊臂至吊物正上方","落钩，挂好吊索","试吊：离地 30 cm","停留确认吊索、支腿与制动","起升至越障高度","回转至卸放方位","伸臂并调整仰角至卸放半径","落钩，吊物就位","摘钩，收钩","收回吊臂","回转复位","落臂，固定吊钩","收回垂直支腿","收回水平支腿，作业结束"],
-  ui:{title:"吊装作业流程", model:"车型", lang:"语言", scene:"伸缩臂起重机 3D 场景，可拖动旋转视角", step:"步骤 {0} / {1}　{2}",
+  ui:{title:"吊装作业流程", contact:"联系邮箱", model:"车型", lang:"语言", scene:"伸缩臂起重机 3D 场景，可拖动旋转视角", step:"步骤 {0} / {1}　{2}",
     manual:"手动调整中，拖动时间轴可回到流程", warn:"支腿未完全伸出并顶升，不得起吊",
     rLen:"臂长", rLuff:"仰角", rRad:"作业半径", rSlew:"回转角", rHook:"吊钩高度", resetView:"重置视角",
     hOut:"支腿", hUpper:"上车机构", hFlow:"作业流程",
@@ -340,7 +342,7 @@ var I18N = {
 "en": {
   groups:["Setup","Positioning & hooking","Lifting & landing","Stowing"],
   steps:["Position the crane; check ground and working area","Extend all outrigger beams","Lower the jacks; lift and level the crane","Slacken the hook; raise the boom","Slew to the load","Telescope out until the hook is over the load","Lower the hook; rig the slings","Trial lift: 30 cm off the ground","Hold; check slings, outriggers and brake","Hoist to clearance height","Slew to the landing position","Telescope out and adjust boom angle to landing radius","Lower the hook; land the load","Unhook; raise the hook","Retract the boom","Slew back to the travel position","Lower the boom; secure the hook","Retract the jacks","Retract the outrigger beams; job complete"],
-  ui:{title:"Lifting operation sequence", model:"Crane model", lang:"Language", scene:"3D scene of a telescopic boom crane; drag to orbit", step:"Step {0} / {1} · {2}",
+  ui:{title:"Lifting operation sequence", contact:"Contact", model:"Crane model", lang:"Language", scene:"3D scene of a telescopic boom crane; drag to orbit", step:"Step {0} / {1} · {2}",
     manual:"Manual adjustment. Drag the timeline to return to the sequence", warn:"Outriggers not fully extended and jacked. Do not lift",
     rLen:"Boom length", rLuff:"Boom angle", rRad:"Working radius", rSlew:"Slew angle", rHook:"Hook height", resetView:"Reset view",
     hOut:"Outriggers", hUpper:"Upper structure", hFlow:"Sequence",
@@ -358,7 +360,7 @@ var I18N = {
 "ja": {
   groups:["作業準備","位置合わせ・玉掛け","吊り運搬・荷下ろし","格納"],
   steps:["車両設置、地盤と作業範囲の確認","アウトリガを全輪水平張出し","ジャッキを伸ばし、車体を持ち上げて水平調整","フックを緩め、ブームを起こす","旋回して吊り荷に合わせる","ブームを伸ばし、吊り荷の真上へ","フックを下げ、玉掛けする","地切り：地上 30 cm","停止して玉掛け・アウトリガ・ブレーキを確認","障害物を越える高さまで巻上げ","荷下ろし方向へ旋回","ブームを伸ばし、起伏角を調整して荷下ろし半径へ","フックを下げ、荷を据え付ける","玉外し、フックを巻上げ","ブームを縮める","旋回して正面に戻す","ブームを倒し、フックを固定","ジャッキを格納","アウトリガを格納、作業終了"],
-  ui:{title:"玉掛け・クレーン作業の流れ", model:"機種", lang:"言語", scene:"伸縮ブームクレーンの 3D シーン。ドラッグで視点を回転", step:"ステップ {0} / {1}　{2}",
+  ui:{title:"玉掛け・クレーン作業の流れ", contact:"お問い合わせ", model:"機種", lang:"言語", scene:"伸縮ブームクレーンの 3D シーン。ドラッグで視点を回転", step:"ステップ {0} / {1}　{2}",
     manual:"手動調整中。タイムラインをドラッグすると流れに戻ります", warn:"アウトリガの張出し・ジャッキアップが未完了。吊り上げ禁止",
     rLen:"ブーム長さ", rLuff:"起伏角", rRad:"作業半径", rSlew:"旋回角", rHook:"フック高さ", resetView:"視点をリセット",
     hOut:"アウトリガ", hUpper:"上部旋回体", hFlow:"作業の流れ",
@@ -376,7 +378,7 @@ var I18N = {
 "ko": {
   groups:["작업 준비","위치 맞춤·줄걸이","인양·하역","격납"],
   steps:["차량 배치, 지반과 작업 범위 확인","아우트리거 전체 수평 확장","잭을 내려 차체를 들어 올리고 수평 조정","훅을 풀고 붐을 세움","선회하여 인양물에 맞춤","붐을 뻗어 인양물 바로 위로","훅을 내리고 줄걸이 작업","시험 인양: 지면에서 30 cm","정지하여 줄걸이·아우트리거·브레이크 확인","장애물 통과 높이까지 권상","하역 방향으로 선회","붐을 뻗고 기복각을 조정해 하역 반경으로","훅을 내려 인양물 안착","줄걸이 해제, 훅 권상","붐 수축","선회하여 정면 복귀","붐을 눕히고 훅 고정","잭 격납","아우트리거 격납, 작업 종료"],
-  ui:{title:"인양 작업 순서", model:"기종", lang:"언어", scene:"텔레스코픽 붐 크레인 3D 장면. 드래그하여 시점 회전", step:"단계 {0} / {1} · {2}",
+  ui:{title:"인양 작업 순서", contact:"문의", model:"기종", lang:"언어", scene:"텔레스코픽 붐 크레인 3D 장면. 드래그하여 시점 회전", step:"단계 {0} / {1} · {2}",
     manual:"수동 조정 중. 타임라인을 드래그하면 순서로 돌아갑니다", warn:"아우트리거 확장·잭업 미완료. 인양 금지",
     rLen:"붐 길이", rLuff:"기복각", rRad:"작업 반경", rSlew:"선회각", rHook:"훅 높이", resetView:"시점 초기화",
     hOut:"아우트리거", hUpper:"상부 선회체", hFlow:"작업 순서",
@@ -394,7 +396,7 @@ var I18N = {
 "es": {
   groups:["Preparación","Posicionado y enganche","Izado y descarga","Recogida"],
   steps:["Posicionar la grúa; comprobar el terreno y la zona de trabajo","Extender las vigas de todos los estabilizadores","Bajar los gatos; elevar y nivelar la grúa","Aflojar el gancho; levantar la pluma","Girar hacia la carga","Extender la pluma hasta situar el gancho sobre la carga","Bajar el gancho; colocar las eslingas","Izado de prueba: 30 cm sobre el suelo","Parar; comprobar eslingas, estabilizadores y freno","Izar hasta la altura de paso","Girar hacia la posición de descarga","Extender la pluma y ajustar el ángulo al radio de descarga","Bajar el gancho; depositar la carga","Desenganchar; subir el gancho","Recoger la pluma","Girar a la posición de transporte","Bajar la pluma; asegurar el gancho","Recoger los gatos","Recoger los estabilizadores; fin del trabajo"],
-  ui:{title:"Secuencia de izado", model:"Modelo de grúa", lang:"Idioma", scene:"Escena 3D de una grúa de pluma telescópica; arrastre para girar la vista", step:"Paso {0} / {1} · {2}",
+  ui:{title:"Secuencia de izado", contact:"Contacto", model:"Modelo de grúa", lang:"Idioma", scene:"Escena 3D de una grúa de pluma telescópica; arrastre para girar la vista", step:"Paso {0} / {1} · {2}",
     manual:"Ajuste manual. Arrastre la línea de tiempo para volver a la secuencia", warn:"Estabilizadores sin extender y apoyar del todo. No izar",
     rLen:"Longitud de pluma", rLuff:"Ángulo de pluma", rRad:"Radio de trabajo", rSlew:"Ángulo de giro", rHook:"Altura del gancho", resetView:"Restablecer vista",
     hOut:"Estabilizadores", hUpper:"Superestructura", hFlow:"Secuencia",
@@ -565,6 +567,20 @@ var slings = new THREE.LineSegments(slingGeo, new THREE.LineBasicMaterial({color
 slings.frustumCulled = false; scene.add(slings);
 var ring = new THREE.Mesh(new THREE.RingGeometry(0.992,1,160), new THREE.MeshBasicMaterial({color:0x2b6c8f, transparent:true, opacity:0.75, side:THREE.DoubleSide}));
 ring.rotation.x = -Math.PI/2; scene.add(ring);
+
+/* contact address painted on the ground, turned toward the default camera */
+var mailMesh = (function(){
+  var cv = document.createElement("canvas"); cv.width = 2048; cv.height = 256;
+  var g = cv.getContext("2d");
+  g.font = "700 150px Arial, Helvetica, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillStyle = "#ffffff"; g.fillText("owen163@gmail.com", 1024, 132, 1980);
+  var tex = new THREE.CanvasTexture(cv);
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  var m = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.125),
+    new THREE.MeshBasicMaterial({map:tex, transparent:true, opacity:0.92, depthWrite:false}));
+  m.rotation.set(-Math.PI/2, 0, 41*D2R);
+  scene.add(m); return m;
+})();
 
 /* signalman: stands outside the working radius, facing the crane */
 var sigG = new THREE.Group(), arms = {}; scene.add(sigG);
@@ -884,6 +900,7 @@ function setModel(m, keepTime){
   load = buildLoad(); scene.add(load);
   hookG.scale.setScalar(C.hookScale);
   placeSignalman(); prevS = null;
+  mailMesh.position.set(C.mail[0], 0.035, C.mail[1]); mailMesh.scale.set(C.mail[2], C.mail[2], 1);
   sliders.luff.max = C.luffMax; sliders.rope.min = C.ropeMin; sliders.rope.max = C.ropeMax;
   tl.max = total;
   $("note").textContent = tr("note_" + C.id) + tr("noteEnd");
