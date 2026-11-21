@@ -21,7 +21,7 @@
   --warn:#ff7a59;
   --ok:#57c794;
   --g0:#5b7fa6; --g1:#3f9c9a; --g2:#c9962a; --g3:#8a78b8;
-  --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Hiragino Sans","Yu Gothic","Malgun Gothic","Microsoft YaHei",system-ui,sans-serif;
   --font-num:"Barlow Condensed","Noto Sans TC",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
@@ -33,6 +33,7 @@ body{
 }
 .top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line)}
 .top h1{font-size:15px;font-weight:700;margin:0}
+#lang{margin-left:auto}
 .seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;max-width:100%}
 .seg button{
   font:inherit;font-weight:700;color:var(--ink);background:var(--panel-2);border:0;border-right:1px solid var(--line);
@@ -146,8 +147,9 @@ button.b.primary{background:var(--accent);color:#1b1a12;border-color:var(--accen
 </head>
 <body>
 <header class="top">
-  <h1>吊掛作業流程</h1>
+  <h1 data-i18n="title">吊掛作業流程</h1>
   <div class="seg" id="models" role="group" aria-label="車型"></div>
+  <select class="b" id="lang" aria-label="Language"></select>
 </header>
 <div class="main">
   <div class="stage" id="stage">
@@ -161,41 +163,41 @@ button.b.primary{background:var(--accent);color:#1b1a12;border-color:var(--accen
         <span class="chip" id="chipOut">駐腳未伸出</span>
         <span class="chip" id="chipLoad">吊物未掛勾</span>
         <span class="chip" id="chipSig">指揮手：待命</span>
-        <span class="chip on" id="chipManual" hidden>手動調整中，拖時間軸可回到流程</span>
-        <span class="chip warn" id="chipWarn" hidden>駐腳未完全伸出並頂升，不得起吊</span>
+        <span class="chip on" id="chipManual" data-i18n="manual" hidden></span>
+        <span class="chip warn" id="chipWarn" data-i18n="warn" hidden></span>
       </div>
     </div>
     <dl class="readout">
-      <div><dt>桿長</dt><dd><span id="rLen">0</span><small>m</small></dd></div>
-      <div><dt>仰角</dt><dd><span id="rLuff">0</span><small>°</small></dd></div>
-      <div><dt>作業半徑</dt><dd><span id="rRad">0</span><small>m</small></dd></div>
-      <div class="opt"><dt>旋轉角</dt><dd><span id="rSlew">0</span><small>°</small></dd></div>
-      <div class="opt"><dt>勾頭高度</dt><dd><span id="rHook">0</span><small>m</small></dd></div>
+      <div><dt data-i18n="rLen">桿長</dt><dd><span id="rLen">0</span><small>m</small></dd></div>
+      <div><dt data-i18n="rLuff">仰角</dt><dd><span id="rLuff">0</span><small>°</small></dd></div>
+      <div><dt data-i18n="rRad">作業半徑</dt><dd><span id="rRad">0</span><small>m</small></dd></div>
+      <div class="opt"><dt data-i18n="rSlew">旋轉角</dt><dd><span id="rSlew">0</span><small>°</small></dd></div>
+      <div class="opt"><dt data-i18n="rHook">勾頭高度</dt><dd><span id="rHook">0</span><small>m</small></dd></div>
     </dl>
-    <button class="b viewbtn" id="resetView" type="button">重設視角</button>
+    <button class="b viewbtn" id="resetView" type="button" data-i18n="resetView">重設視角</button>
   </div>
 
   <aside class="panel">
     <section>
-      <h2>駐腳</h2>
-      <div class="ctl"><label for="sOutH">水平外伸（全車四支）</label><output id="oOutH"></output>
+      <h2 data-i18n="hOut">駐腳</h2>
+      <div class="ctl"><label for="sOutH" data-i18n="lOutH">水平外伸（全車四支）</label><output id="oOutH"></output>
         <input id="sOutH" type="range" min="0" max="1" step="0.01"></div>
-      <div class="ctl"><label for="sOutV">垂直伸出（全車四支）</label><output id="oOutV"></output>
+      <div class="ctl"><label for="sOutV" data-i18n="lOutV">垂直伸出（全車四支）</label><output id="oOutV"></output>
         <input id="sOutV" type="range" min="0" max="1" step="0.01"></div>
     </section>
     <section>
-      <h2>上部機構</h2>
-      <div class="ctl"><label for="sSlew">上部旋轉</label><output id="oSlew"></output>
+      <h2 data-i18n="hUpper">上部機構</h2>
+      <div class="ctl"><label for="sSlew" data-i18n="lSlew">上部旋轉</label><output id="oSlew"></output>
         <input id="sSlew" type="range" min="0" max="360" step="0.5"></div>
-      <div class="ctl"><label for="sLuff">仰傾角</label><output id="oLuff"></output>
+      <div class="ctl"><label for="sLuff" data-i18n="lLuff">仰傾角</label><output id="oLuff"></output>
         <input id="sLuff" type="range" min="0" max="82" step="0.5"></div>
-      <div class="ctl"><label for="sTele">伸縮桿</label><output id="oTele"></output>
+      <div class="ctl"><label for="sTele" data-i18n="lTele">伸縮桿</label><output id="oTele"></output>
         <input id="sTele" type="range" min="0" max="1" step="0.005"></div>
-      <div class="ctl"><label for="sRope">勾頭上下（鋼索放出）</label><output id="oRope"></output>
+      <div class="ctl"><label for="sRope" data-i18n="lRope">勾頭上下（鋼索放出）</label><output id="oRope"></output>
         <input id="sRope" type="range" min="1.3" max="27" step="0.05"></div>
     </section>
     <section>
-      <h2>作業流程</h2>
+      <h2 data-i18n="hFlow">作業流程</h2>
       <ol class="steps" id="stepList"></ol>
     </section>
     <p class="note" id="note"></p>
@@ -205,8 +207,8 @@ button.b.primary{background:var(--accent);color:#1b1a12;border-color:var(--accen
 <div class="bar">
   <div class="btns">
     <button class="b primary" id="play" type="button">播放</button>
-    <button class="b" id="prev" type="button">上一步</button>
-    <button class="b" id="next" type="button">下一步</button>
+    <button class="b" id="prev" type="button" data-i18n="prev">上一步</button>
+    <button class="b" id="next" type="button" data-i18n="next">下一步</button>
     <select class="b" id="speed" aria-label="播放速度">
       <option value="0.5">0.5×</option><option value="1">1×</option>
       <option value="2" selected>2×</option><option value="4">4×</option>
@@ -294,6 +296,135 @@ function fk(s){
   return { L:L, radius:Math.hypot(x, C.pz), lift:lift,
     hx: C.cx + x*Math.cos(th) + C.pz*Math.sin(th), hy: C.deckY + lift + y,
     hz: -x*Math.sin(th) + C.pz*Math.cos(th) };
+}
+
+/* ---------- languages ---------- */
+var LANGS = [["zh-Hant","繁體中文"],["zh-Hans","简体中文"],["en","English"],["ja","日本語"],["ko","한국어"],["es","Español"]];
+var I18N = {
+"zh-Hant": {
+  groups:["吊掛準備","對位掛勾","吊運卸放","收車"],
+  steps:["車輛就位，確認地盤與作業範圍","全車駐腳水平外伸","駐腳垂直伸出，頂升車身調平","鬆勾，仰起吊桿","上部旋轉，對準吊物","伸出伸縮桿到吊物正上方","降勾，掛妥吊索","試吊：離地 30 cm","停留確認吊索、駐腳與剎車","起升到越障高度","上部旋轉到卸放方位","伸桿並調整仰角到卸放半徑","降勾，吊物就位","卸勾，收勾","收回伸縮桿","上部旋轉回正","伏下吊桿，固定勾頭","收回垂直駐腳","收回水平駐腳，作業結束"],
+  ui:{title:"吊掛作業流程", model:"車型", lang:"語言", scene:"伸縮桿起重機 3D 場景，可拖曳旋轉視角", step:"步驟 {0} / {1}　{2}",
+    manual:"手動調整中，拖時間軸可回到流程", warn:"駐腳未完全伸出並頂升，不得起吊",
+    rLen:"桿長", rLuff:"仰角", rRad:"作業半徑", rSlew:"旋轉角", rHook:"勾頭高度", resetView:"重設視角",
+    hOut:"駐腳", hUpper:"上部機構", hFlow:"作業流程",
+    lOutH:"水平外伸（全車四支）", lOutV:"垂直伸出（全車四支）", lSlew:"上部旋轉", lLuff:"仰傾角", lTele:"伸縮桿", lRope:"勾頭上下（鋼索放出）",
+    play:"播放", pause:"暫停", prev:"上一步", next:"下一步", speed:"播放速度", timeline:"流程時間軸",
+    span:"張出幅 {0} m", outNone:"駐腳未伸出", outH:"駐腳水平外伸 {0} %", outV:"駐腳垂直伸出 {0} %", outGround:"駐腳著地，頂升 {0} cm", outReady:"駐腳全伸，車身頂升 {0} cm",
+    loadNone:"吊物未掛勾", loadOn:"吊掛中", loadDone:"吊物已卸放",
+    sigPrefix:"指揮手：{0}", sig_idle:"待命", sig_out:"駐腳作業，監看", sig_stop:"停止", sig_slew:"旋轉（手指迴轉方向）", sig_hoistUp:"吊升", sig_hoistDown:"下降", sig_luffUp:"仰桿", sig_luffDown:"伏桿", sig_teleOut:"伸桿", sig_teleIn:"縮桿",
+    subRT:"越野式 16 t", truck:"卡車式", subTruck:"四軸通用示意",
+    note_gr160n:"依 GR-160N 公開規格建模：6 段桿 6.5–27.5 m（2、3 節同步，4、5、6 節同步）、仰角上限 82.5°、H 型駐腳張出幅 1.79–5.2 m、單支起伏油壓缸。軸距與車身外形為估計值，兩組桿節的先後順序為假設，未內建額定荷重表。",
+    note_tr160m:"依 TR-160M 公開規格建模：6 段桿 6.5–27.5 m、仰角上限 82°、H 型駐腳最大張出幅 5.2 m、雙起伏油壓缸。軸距、車身外形與收回時的駐腳寬度為估計值，桿節以同步伸出表示，未內建額定荷重表。",
+    note_truck:"通用四軸卡車式伸縮桿吊車示意，尺寸與動作不對應特定機型，未內建額定荷重表。",
+    noteEnd:"指揮手手勢為簡化示意。實際作業以該機荷重表與現場吊掛指揮為準。"}
+},
+"zh-Hans": {
+  groups:["吊装准备","对位挂钩","吊运卸放","收车"],
+  steps:["车辆就位，确认地基与作业范围","全车支腿水平伸出","支腿垂直伸出，顶升车身并调平","松钩，起臂","回转对准吊物","伸出吊臂至吊物正上方","落钩，挂好吊索","试吊：离地 30 cm","停留确认吊索、支腿与制动","起升至越障高度","回转至卸放方位","伸臂并调整仰角至卸放半径","落钩，吊物就位","摘钩，收钩","收回吊臂","回转复位","落臂，固定吊钩","收回垂直支腿","收回水平支腿，作业结束"],
+  ui:{title:"吊装作业流程", model:"车型", lang:"语言", scene:"伸缩臂起重机 3D 场景，可拖动旋转视角", step:"步骤 {0} / {1}　{2}",
+    manual:"手动调整中，拖动时间轴可回到流程", warn:"支腿未完全伸出并顶升，不得起吊",
+    rLen:"臂长", rLuff:"仰角", rRad:"作业半径", rSlew:"回转角", rHook:"吊钩高度", resetView:"重置视角",
+    hOut:"支腿", hUpper:"上车机构", hFlow:"作业流程",
+    lOutH:"水平伸出（全车四支）", lOutV:"垂直伸出（全车四支）", lSlew:"上车回转", lLuff:"仰角", lTele:"伸缩臂", lRope:"吊钩升降（钢丝绳放出）",
+    play:"播放", pause:"暂停", prev:"上一步", next:"下一步", speed:"播放速度", timeline:"流程时间轴",
+    span:"跨距 {0} m", outNone:"支腿未伸出", outH:"支腿水平伸出 {0} %", outV:"支腿垂直伸出 {0} %", outGround:"支腿着地，顶升 {0} cm", outReady:"支腿全伸，车身顶升 {0} cm",
+    loadNone:"吊物未挂钩", loadOn:"吊运中", loadDone:"吊物已卸放",
+    sigPrefix:"指挥员：{0}", sig_idle:"待命", sig_out:"支腿作业，监看", sig_stop:"停止", sig_slew:"回转（手指回转方向）", sig_hoistUp:"起升", sig_hoistDown:"下降", sig_luffUp:"起臂", sig_luffDown:"落臂", sig_teleOut:"伸臂", sig_teleIn:"缩臂",
+    subRT:"越野式 16 t", truck:"汽车式", subTruck:"四轴通用示意",
+    note_gr160n:"按 GR-160N 公开规格建模：6 节臂 6.5–27.5 m（2、3 节同步，4、5、6 节同步）、仰角上限 82.5°、H 型支腿跨距 1.79–5.2 m、单支变幅油缸。轴距与车身外形为估计值，两组臂节的先后顺序为假设，未内置额定起重量表。",
+    note_tr160m:"按 TR-160M 公开规格建模：6 节臂 6.5–27.5 m、仰角上限 82°、H 型支腿最大跨距 5.2 m、双变幅油缸。轴距、车身外形与收回时的支腿宽度为估计值，臂节以同步伸出表示，未内置额定起重量表。",
+    note_truck:"通用四轴汽车式伸缩臂起重机示意，尺寸与动作不对应特定机型，未内置额定起重量表。",
+    noteEnd:"指挥手势为简化示意。实际作业以该机起重量表与现场吊装指挥为准。"}
+},
+"en": {
+  groups:["Setup","Positioning & hooking","Lifting & landing","Stowing"],
+  steps:["Position the crane; check ground and working area","Extend all outrigger beams","Lower the jacks; lift and level the crane","Slacken the hook; raise the boom","Slew to the load","Telescope out until the hook is over the load","Lower the hook; rig the slings","Trial lift: 30 cm off the ground","Hold; check slings, outriggers and brake","Hoist to clearance height","Slew to the landing position","Telescope out and adjust boom angle to landing radius","Lower the hook; land the load","Unhook; raise the hook","Retract the boom","Slew back to the travel position","Lower the boom; secure the hook","Retract the jacks","Retract the outrigger beams; job complete"],
+  ui:{title:"Lifting operation sequence", model:"Crane model", lang:"Language", scene:"3D scene of a telescopic boom crane; drag to orbit", step:"Step {0} / {1} · {2}",
+    manual:"Manual adjustment. Drag the timeline to return to the sequence", warn:"Outriggers not fully extended and jacked. Do not lift",
+    rLen:"Boom length", rLuff:"Boom angle", rRad:"Working radius", rSlew:"Slew angle", rHook:"Hook height", resetView:"Reset view",
+    hOut:"Outriggers", hUpper:"Upper structure", hFlow:"Sequence",
+    lOutH:"Beam extension (all four)", lOutV:"Jack extension (all four)", lSlew:"Slew", lLuff:"Boom angle", lTele:"Telescope", lRope:"Hook up/down (rope paid out)",
+    play:"Play", pause:"Pause", prev:"Previous", next:"Next", speed:"Playback speed", timeline:"Sequence timeline",
+    span:"Span {0} m", outNone:"Outriggers stowed", outH:"Outrigger beams {0} %", outV:"Outrigger jacks {0} %", outGround:"Jacks on ground, lifted {0} cm", outReady:"Outriggers fully set, lifted {0} cm",
+    loadNone:"Load not hooked", loadOn:"Load on hook", loadDone:"Load landed",
+    sigPrefix:"Signaller: {0}", sig_idle:"Standing by", sig_out:"Watching outriggers", sig_stop:"Stop", sig_slew:"Slew (pointing the way)", sig_hoistUp:"Hoist", sig_hoistDown:"Lower", sig_luffUp:"Boom up", sig_luffDown:"Boom down", sig_teleOut:"Telescope out", sig_teleIn:"Telescope in",
+    subRT:"Rough terrain 16 t", truck:"Truck crane", subTruck:"Generic 4-axle",
+    note_gr160n:"Modelled on published GR-160N specs: 6-section boom 6.5–27.5 m (sections 2–3 synchronised, 4–6 synchronised), boom angle up to 82.5°, H-type outriggers 1.79–5.2 m span, single elevation cylinder. Wheelbase and body shape are estimates, the order of the two section groups is assumed, and no rated load chart is built in. ",
+    note_tr160m:"Modelled on published TR-160M specs: 6-section boom 6.5–27.5 m, boom angle up to 82°, H-type outriggers up to 5.2 m span, twin elevation cylinders. Wheelbase, body shape and retracted outrigger width are estimates, sections are shown extending together, and no rated load chart is built in. ",
+    note_truck:"Generic four-axle truck crane for illustration. Dimensions and motions match no specific model and no rated load chart is built in. ",
+    noteEnd:"Hand signals are simplified. For real work follow the machine's load chart and the site lift supervisor."}
+},
+"ja": {
+  groups:["作業準備","位置合わせ・玉掛け","吊り運搬・荷下ろし","格納"],
+  steps:["車両設置、地盤と作業範囲の確認","アウトリガを全輪水平張出し","ジャッキを伸ばし、車体を持ち上げて水平調整","フックを緩め、ブームを起こす","旋回して吊り荷に合わせる","ブームを伸ばし、吊り荷の真上へ","フックを下げ、玉掛けする","地切り：地上 30 cm","停止して玉掛け・アウトリガ・ブレーキを確認","障害物を越える高さまで巻上げ","荷下ろし方向へ旋回","ブームを伸ばし、起伏角を調整して荷下ろし半径へ","フックを下げ、荷を据え付ける","玉外し、フックを巻上げ","ブームを縮める","旋回して正面に戻す","ブームを倒し、フックを固定","ジャッキを格納","アウトリガを格納、作業終了"],
+  ui:{title:"玉掛け・クレーン作業の流れ", model:"機種", lang:"言語", scene:"伸縮ブームクレーンの 3D シーン。ドラッグで視点を回転", step:"ステップ {0} / {1}　{2}",
+    manual:"手動調整中。タイムラインをドラッグすると流れに戻ります", warn:"アウトリガの張出し・ジャッキアップが未完了。吊り上げ禁止",
+    rLen:"ブーム長さ", rLuff:"起伏角", rRad:"作業半径", rSlew:"旋回角", rHook:"フック高さ", resetView:"視点をリセット",
+    hOut:"アウトリガ", hUpper:"上部旋回体", hFlow:"作業の流れ",
+    lOutH:"水平張出し（4 本同時）", lOutV:"ジャッキ伸長（4 本同時）", lSlew:"旋回", lLuff:"起伏角", lTele:"ブーム伸縮", lRope:"フック上下（ワイヤ繰出し）",
+    play:"再生", pause:"一時停止", prev:"前へ", next:"次へ", speed:"再生速度", timeline:"作業タイムライン",
+    span:"張出幅 {0} m", outNone:"アウトリガ未張出し", outH:"アウトリガ水平張出し {0} %", outV:"ジャッキ伸長 {0} %", outGround:"ジャッキ接地、車体上昇 {0} cm", outReady:"アウトリガ全張出し、車体上昇 {0} cm",
+    loadNone:"玉掛け前", loadOn:"吊り荷あり", loadDone:"荷下ろし完了",
+    sigPrefix:"合図者：{0}", sig_idle:"待機", sig_out:"アウトリガ作業を監視", sig_stop:"停止", sig_slew:"旋回（旋回方向を指示）", sig_hoistUp:"巻上げ", sig_hoistDown:"巻下げ", sig_luffUp:"ブーム上げ", sig_luffDown:"ブーム下げ", sig_teleOut:"ブーム伸ばし", sig_teleIn:"ブーム縮め",
+    subRT:"ラフテレーン 16 t", truck:"トラッククレーン", subTruck:"4 軸・汎用イメージ",
+    note_gr160n:"GR-160N の公開仕様に基づくモデル：6 段ブーム 6.5–27.5 m（2・3 段同時、4・5・6 段同時）、起伏角上限 82.5°、H 型アウトリガ張出幅 1.79–5.2 m、起伏シリンダ 1 本。ホイールベースと車体形状は推定値、2 グループの伸縮順序は仮定で、定格荷重表は内蔵していません。",
+    note_tr160m:"TR-160M の公開仕様に基づくモデル：6 段ブーム 6.5–27.5 m、起伏角上限 82°、H 型アウトリガ最大張出幅 5.2 m、起伏シリンダ 2 本。ホイールベース、車体形状、格納時のアウトリガ幅は推定値で、ブームは全段同時伸縮として表示し、定格荷重表は内蔵していません。",
+    note_truck:"汎用の 4 軸トラッククレーンのイメージです。寸法と動作は特定の機種に対応せず、定格荷重表は内蔵していません。",
+    noteEnd:"合図は簡略化したものです。実作業は機体の定格荷重表と現場の作業指揮者に従ってください。"}
+},
+"ko": {
+  groups:["작업 준비","위치 맞춤·줄걸이","인양·하역","격납"],
+  steps:["차량 배치, 지반과 작업 범위 확인","아우트리거 전체 수평 확장","잭을 내려 차체를 들어 올리고 수평 조정","훅을 풀고 붐을 세움","선회하여 인양물에 맞춤","붐을 뻗어 인양물 바로 위로","훅을 내리고 줄걸이 작업","시험 인양: 지면에서 30 cm","정지하여 줄걸이·아우트리거·브레이크 확인","장애물 통과 높이까지 권상","하역 방향으로 선회","붐을 뻗고 기복각을 조정해 하역 반경으로","훅을 내려 인양물 안착","줄걸이 해제, 훅 권상","붐 수축","선회하여 정면 복귀","붐을 눕히고 훅 고정","잭 격납","아우트리거 격납, 작업 종료"],
+  ui:{title:"인양 작업 순서", model:"기종", lang:"언어", scene:"텔레스코픽 붐 크레인 3D 장면. 드래그하여 시점 회전", step:"단계 {0} / {1} · {2}",
+    manual:"수동 조정 중. 타임라인을 드래그하면 순서로 돌아갑니다", warn:"아우트리거 확장·잭업 미완료. 인양 금지",
+    rLen:"붐 길이", rLuff:"기복각", rRad:"작업 반경", rSlew:"선회각", rHook:"훅 높이", resetView:"시점 초기화",
+    hOut:"아우트리거", hUpper:"상부 선회체", hFlow:"작업 순서",
+    lOutH:"수평 확장 (4개 동시)", lOutV:"잭 신장 (4개 동시)", lSlew:"선회", lLuff:"기복각", lTele:"붐 신축", lRope:"훅 상하 (와이어 풀림)",
+    play:"재생", pause:"일시정지", prev:"이전", next:"다음", speed:"재생 속도", timeline:"작업 타임라인",
+    span:"확장 폭 {0} m", outNone:"아우트리거 미확장", outH:"아우트리거 수평 확장 {0} %", outV:"잭 신장 {0} %", outGround:"잭 접지, 차체 상승 {0} cm", outReady:"아우트리거 완전 확장, 차체 상승 {0} cm",
+    loadNone:"줄걸이 전", loadOn:"인양 중", loadDone:"하역 완료",
+    sigPrefix:"신호수: {0}", sig_idle:"대기", sig_out:"아우트리거 작업 감시", sig_stop:"정지", sig_slew:"선회 (선회 방향 지시)", sig_hoistUp:"권상", sig_hoistDown:"권하", sig_luffUp:"붐 올림", sig_luffDown:"붐 내림", sig_teleOut:"붐 신장", sig_teleIn:"붐 수축",
+    subRT:"험지형 16 t", truck:"트럭 크레인", subTruck:"4축 일반 예시",
+    note_gr160n:"GR-160N 공개 사양 기준 모델: 6단 붐 6.5–27.5 m (2·3단 동시, 4·5·6단 동시), 기복각 최대 82.5°, H형 아우트리거 확장 폭 1.79–5.2 m, 기복 실린더 1개. 축간거리와 차체 형상은 추정값이고 두 그룹의 신축 순서는 가정이며 정격 하중표는 내장되어 있지 않습니다. ",
+    note_tr160m:"TR-160M 공개 사양 기준 모델: 6단 붐 6.5–27.5 m, 기복각 최대 82°, H형 아우트리거 최대 확장 폭 5.2 m, 기복 실린더 2개. 축간거리, 차체 형상, 격납 시 아우트리거 폭은 추정값이고 붐은 전단 동시 신축으로 표시하며 정격 하중표는 내장되어 있지 않습니다. ",
+    note_truck:"일반적인 4축 트럭 크레인 예시입니다. 치수와 동작은 특정 기종과 일치하지 않으며 정격 하중표는 내장되어 있지 않습니다. ",
+    noteEnd:"수신호는 단순화한 것입니다. 실제 작업은 해당 장비의 정격 하중표와 현장 작업 지휘자를 따르십시오."}
+},
+"es": {
+  groups:["Preparación","Posicionado y enganche","Izado y descarga","Recogida"],
+  steps:["Posicionar la grúa; comprobar el terreno y la zona de trabajo","Extender las vigas de todos los estabilizadores","Bajar los gatos; elevar y nivelar la grúa","Aflojar el gancho; levantar la pluma","Girar hacia la carga","Extender la pluma hasta situar el gancho sobre la carga","Bajar el gancho; colocar las eslingas","Izado de prueba: 30 cm sobre el suelo","Parar; comprobar eslingas, estabilizadores y freno","Izar hasta la altura de paso","Girar hacia la posición de descarga","Extender la pluma y ajustar el ángulo al radio de descarga","Bajar el gancho; depositar la carga","Desenganchar; subir el gancho","Recoger la pluma","Girar a la posición de transporte","Bajar la pluma; asegurar el gancho","Recoger los gatos","Recoger los estabilizadores; fin del trabajo"],
+  ui:{title:"Secuencia de izado", model:"Modelo de grúa", lang:"Idioma", scene:"Escena 3D de una grúa de pluma telescópica; arrastre para girar la vista", step:"Paso {0} / {1} · {2}",
+    manual:"Ajuste manual. Arrastre la línea de tiempo para volver a la secuencia", warn:"Estabilizadores sin extender y apoyar del todo. No izar",
+    rLen:"Longitud de pluma", rLuff:"Ángulo de pluma", rRad:"Radio de trabajo", rSlew:"Ángulo de giro", rHook:"Altura del gancho", resetView:"Restablecer vista",
+    hOut:"Estabilizadores", hUpper:"Superestructura", hFlow:"Secuencia",
+    lOutH:"Extensión de vigas (las cuatro)", lOutV:"Extensión de gatos (los cuatro)", lSlew:"Giro", lLuff:"Ángulo de pluma", lTele:"Telescopado", lRope:"Gancho arriba/abajo (cable suelto)",
+    play:"Reproducir", pause:"Pausa", prev:"Anterior", next:"Siguiente", speed:"Velocidad", timeline:"Línea de tiempo de la secuencia",
+    span:"Ancho {0} m", outNone:"Estabilizadores recogidos", outH:"Vigas de estabilizador {0} %", outV:"Gatos de estabilizador {0} %", outGround:"Gatos apoyados, elevación {0} cm", outReady:"Estabilizadores listos, elevación {0} cm",
+    loadNone:"Carga sin enganchar", loadOn:"Carga suspendida", loadDone:"Carga depositada",
+    sigPrefix:"Señalista: {0}", sig_idle:"En espera", sig_out:"Vigilando estabilizadores", sig_stop:"Alto", sig_slew:"Giro (señala el sentido)", sig_hoistUp:"Izar", sig_hoistDown:"Bajar", sig_luffUp:"Subir pluma", sig_luffDown:"Bajar pluma", sig_teleOut:"Extender pluma", sig_teleIn:"Recoger pluma",
+    subRT:"Todoterreno 16 t", truck:"Grúa sobre camión", subTruck:"Genérica de 4 ejes",
+    note_gr160n:"Modelo basado en las especificaciones publicadas de la GR-160N: pluma de 6 tramos, 6,5–27,5 m (tramos 2–3 sincronizados, 4–6 sincronizados), ángulo máximo 82,5°, estabilizadores tipo H con ancho de 1,79–5,2 m, un cilindro de elevación. La batalla y la forma del chasis son estimaciones, el orden de los dos grupos de tramos es una suposición y no incluye tabla de cargas. ",
+    note_tr160m:"Modelo basado en las especificaciones publicadas de la TR-160M: pluma de 6 tramos, 6,5–27,5 m, ángulo máximo 82°, estabilizadores tipo H con ancho máximo de 5,2 m, dos cilindros de elevación. La batalla, la forma del chasis y el ancho con estabilizadores recogidos son estimaciones, los tramos se muestran saliendo a la vez y no incluye tabla de cargas. ",
+    note_truck:"Grúa genérica sobre camión de cuatro ejes, a modo de ilustración. Las dimensiones y los movimientos no corresponden a ningún modelo concreto y no incluye tabla de cargas. ",
+    noteEnd:"Las señales manuales están simplificadas. En obra, siga la tabla de cargas de la máquina y al responsable de la maniobra."}
+}
+};
+var LANG = "en", T = I18N.en;
+function tr(key){
+  var s = T.ui[key], a = arguments;
+  return s.replace(/\{(\d)\}/g, function(_, i){ return a[+i+1]; });
+}
+function detectLang(){
+  try { var saved = localStorage.getItem("crane-lang"); if (saved && I18N[saved]) return saved; } catch (e) {}
+  var prefs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"]);
+  for (var i=0;i<prefs.length;i++){
+    var l = String(prefs[i]).toLowerCase();
+    if (l.indexOf("zh") === 0) return /hant|tw|hk|mo/.test(l) ? "zh-Hant" : "zh-Hans";
+    var base = l.split("-")[0];
+    if (I18N[base]) return base;
+  }
+  return "en";
 }
 
 /* ---------- process steps (same sequence for every model) ---------- */
@@ -459,7 +590,6 @@ var sigG = new THREE.Group(), arms = {}; scene.add(sigG);
   sigG.scale.setScalar(1.12);
 })();
 var sig = {type:"idle", dir:1, arm:"R"}, sigAt = -1e9, prevS = null, sigText = "";
-var SIG_NAMES = {idle:"待命", out:"駐腳作業，監看", stop:"停止", slew:"旋轉（手指迴轉方向）"};
 function placeSignalman(){
   sigG.position.set(C.signal[0], 0, C.signal[1]);
   sigG.rotation.y = Math.atan2(C.cx - C.signal[0], -C.signal[1]);
@@ -489,20 +619,20 @@ function animSignal(now){
   var t = now/1000, w = 0.5 + 0.5*Math.sin(t*7), up = sig.dir > 0;
   var P = {R:[0,0,0,0], L:[0,0,0,0]}, a = "R", text;     // [shoulder x, shoulder z, elbow x, elbow z] in degrees, right-arm signs
   if (type === "hoist"){
-    text = up ? "吊升" : "下降";
+    text = up ? "hoistUp" : "hoistDown";
     P.R = up ? [0,-90, 20*Math.sin(t*7), -90 + 15*Math.cos(t*7)] : [12*Math.sin(t*7), -45 + 8*Math.cos(t*7), 0, 0];
   } else if (type === "luff"){
-    text = up ? "仰桿" : "伏桿";
+    text = up ? "luffUp" : "luffDown";
     P.R = [0, up ? -90 - 30*w : -90 + 30*w, 0, 0];
   } else if (type === "tele"){
-    text = up ? "伸桿" : "縮桿";
+    text = up ? "teleOut" : "teleIn";
     var p = (t*0.9) % 1, spread = up ? 5 + 40*p : 45 - 40*p;
     P.R = [-75, -spread, 0, 0]; P.L = [-75, -spread, 0, 0];
   } else if (type === "slew"){
-    text = SIG_NAMES.slew; a = sig.arm; P[a] = [0, -90, 0, -22*w];
+    text = "slew"; a = sig.arm; P[a] = [0, -90, 0, -22*w];
   } else if (type === "stop"){
-    text = SIG_NAMES.stop; P.R = [0, -155, 0, 0];
-  } else text = SIG_NAMES[type];
+    text = "stop"; P.R = [0, -155, 0, 0];
+  } else text = type;
   ["R","L"].forEach(function(k){
     var arm = arms[k], m = k === "R" ? 1 : -1, c = arm.cur, tg = P[k];
     for (var i=0;i<4;i++) c[i] += (tg[i] - c[i])*0.22;
@@ -512,7 +642,7 @@ function animSignal(now){
   if (text !== sigText){
     sigText = text;
     var chip = $("chipSig");
-    chip.textContent = "指揮手：" + text;
+    chip.textContent = tr("sigPrefix", tr("sig_" + text));
     chip.className = "chip" + (type === "idle" || type === "out" ? "" : type === "stop" ? " warn" : " on");
   }
 }
@@ -711,6 +841,8 @@ var segEls = [], stepBtns = [], modelBtns = [], lastStep = -1;
 
 function buildUI(){
   var segs = $("segs"), list = $("stepList"), groups = $("groups"), gDur = [0,0,0,0], gPrev = -1;
+  [segs, list, groups, $("models")].forEach(function(e){ e.textContent = ""; });
+  segEls = []; stepBtns = []; modelBtns = [];
   steps.forEach(function(st,i){
     var e = document.createElement("i");
     e.style.flex = st.dur + " 0 0"; e.style.background = GROUPS[st.g].color;
@@ -718,23 +850,24 @@ function buildUI(){
     if (st.g !== gPrev){
       var h = document.createElement("li"); h.className = "grp";
       var sw = document.createElement("i"); sw.style.background = GROUPS[st.g].color;
-      h.appendChild(sw); h.appendChild(document.createTextNode(GROUPS[st.g].name));
+      h.appendChild(sw); h.appendChild(document.createTextNode(T.groups[st.g]));
       list.appendChild(h); gPrev = st.g;
     }
     var li = document.createElement("li"), b = document.createElement("button"), n = document.createElement("span");
-    b.type = "button"; n.textContent = i+1; b.appendChild(n); b.appendChild(document.createTextNode(st.name));
+    b.type = "button"; n.textContent = i+1; b.appendChild(n); b.appendChild(document.createTextNode(T.steps[i]));
     b.addEventListener("click", function(){ seek(steps[i].t0 + 0.001); setPlaying(true); });
     li.appendChild(b); list.appendChild(li); stepBtns.push(b);
   });
   GROUPS.forEach(function(g,i){
     var s = document.createElement("span");
-    s.style.flex = gDur[i] + " 0 0"; s.style.borderColor = g.color; s.textContent = g.name;
+    s.style.flex = gDur[i] + " 0 0"; s.style.borderColor = g.color; s.textContent = T.groups[i];
     groups.appendChild(s);
   });
   var bar = $("models");
   MODELS.forEach(function(m){
     var b = document.createElement("button"), sm = document.createElement("small");
-    b.type = "button"; b.id = "model-" + m.id; b.textContent = m.label; sm.textContent = m.sub; b.appendChild(sm);
+    b.type = "button"; b.id = "model-" + m.id; b.textContent = m.type === "truck" ? tr("truck") : m.label; sm.textContent = tr(m.type === "truck" ? "subTruck" : "subRT"); b.appendChild(sm);
+    b.setAttribute("aria-pressed", C === m ? "true" : "false");
     b.addEventListener("click", function(){ if (C !== m) setModel(m, true); });
     bar.appendChild(b); modelBtns.push(b);
   });
@@ -753,7 +886,7 @@ function setModel(m, keepTime){
   placeSignalman(); prevS = null;
   sliders.luff.max = C.luffMax; sliders.rope.min = C.ropeMin; sliders.rope.max = C.ropeMax;
   tl.max = total;
-  $("note").textContent = C.note + "指揮手手勢為簡化示意。實際作業以該機荷重表與現場吊掛指揮為準。";
+  $("note").textContent = tr("note_" + C.id) + tr("noteEnd");
   modelBtns.forEach(function(b,i){ b.setAttribute("aria-pressed", MODELS[i] === m ? "true" : "false"); });
   if (!keepTime) time = 0;
   manual = false; lastStep = -1;
@@ -761,11 +894,25 @@ function setModel(m, keepTime){
   resetView(); apply();
 }
 
+function applyLang(lang){
+  LANG = lang; T = I18N[lang];
+  document.documentElement.lang = lang;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function(e){ e.textContent = tr(e.getAttribute("data-i18n")); });
+  canvas.setAttribute("aria-label", tr("scene"));
+  $("models").setAttribute("aria-label", tr("model"));
+  $("lang").setAttribute("aria-label", tr("lang")); $("lang").value = lang;
+  $("speed").setAttribute("aria-label", tr("speed")); tl.setAttribute("aria-label", tr("timeline"));
+  $("play").textContent = tr(playing ? "pause" : "play");
+  $("note").textContent = tr("note_" + C.id) + tr("noteEnd");
+  buildUI();
+  lastStep = -1; sigText = "";
+  if (state) updateUI();
+}
 function fmt(v,d){ return v.toFixed(d==null?1:d); }
 function updateUI(){
   var s = state, f = last.f;
   KEYS.forEach(function(k){ if (document.activeElement !== sliders[k]) sliders[k].value = s[k]; });
-  outs.outH.textContent = "張出幅 " + fmt(2*(C.jackZ + C.beamTravel*s.outH), 2) + " m";
+  outs.outH.textContent = tr("span", fmt(2*(C.jackZ + C.beamTravel*s.outH), 2));
   outs.outV.textContent = Math.round(s.outV*100) + " %";
   outs.slew.textContent = fmt(s.slew, 0) + "°";
   outs.luff.textContent = fmt(s.luff) + "°";
@@ -777,13 +924,13 @@ function updateUI(){
 
   var co = $("chipOut"), grounded = last.jackExt >= C.jackGap - 0.001, ready = s.outH > 0.99 && s.outV > 0.99;
   co.className = "chip" + (ready ? " ok" : (s.outH > 0.01 || s.outV > 0.01 ? " on" : ""));
-  co.textContent = ready ? "駐腳全伸，車身頂升 " + Math.round(f.lift*100) + " cm"
-    : grounded ? "駐腳著地，頂升 " + Math.round(f.lift*100) + " cm"
-    : s.outV > 0.01 ? "駐腳垂直伸出 " + Math.round(s.outV*100) + " %"
-    : s.outH > 0.01 ? "駐腳水平外伸 " + Math.round(s.outH*100) + " %" : "駐腳未伸出";
+  co.textContent = ready ? tr("outReady", Math.round(f.lift*100))
+    : grounded ? tr("outGround", Math.round(f.lift*100))
+    : s.outV > 0.01 ? tr("outV", Math.round(s.outV*100))
+    : s.outH > 0.01 ? tr("outH", Math.round(s.outH*100)) : tr("outNone");
   var cl = $("chipLoad");
   cl.className = "chip" + (last.attached ? " on" : (time >= tRelease ? " ok" : ""));
-  cl.textContent = last.attached ? "吊掛中" : (time >= tRelease ? "吊物已卸放" : "吊物未掛勾");
+  cl.textContent = tr(last.attached ? "loadOn" : (time >= tRelease ? "loadDone" : "loadNone"));
   $("chipManual").hidden = !manual;
   var working = s.luff > 3 || s.tele > 0.02 || (s.slew % 360 > 2 && s.slew % 360 < 358);
   $("chipWarn").hidden = !(working && !ready);
@@ -791,8 +938,8 @@ function updateUI(){
   var i = stepIndexAt(time);
   if (i !== lastStep){
     lastStep = i;
-    $("stepNo").textContent = "步驟 " + (i+1) + " / " + steps.length + "　" + GROUPS[steps[i].g].name;
-    $("stepName").textContent = steps[i].name;
+    $("stepNo").textContent = tr("step", i+1, steps.length, T.groups[steps[i].g]);
+    $("stepName").textContent = T.steps[i];
     segEls.forEach(function(e,j){ e.className = j < i ? "done" : (j === i ? "cur" : ""); });
     stepBtns.forEach(function(b,j){ if (j === i) b.setAttribute("aria-current","step"); else b.removeAttribute("aria-current"); });
   }
@@ -800,7 +947,7 @@ function updateUI(){
   $("time").textContent = fmt(time) + " / " + fmt(total) + " s";
 }
 function setPlaying(p){
-  playing = p; $("play").textContent = p ? "暫停" : "播放";
+  playing = p; $("play").textContent = tr(p ? "pause" : "play");
   if (p) manual = false;
 }
 function seek(t){
@@ -841,7 +988,12 @@ function resize(){
 if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
 window.addEventListener("resize", resize);
 resize();
-buildSteps(); buildUI(); setModel(MODELS[0], false);
+LANGS.forEach(function(l){ var o = document.createElement("option"); o.value = l[0]; o.textContent = l[1]; $("lang").appendChild(o); });
+$("lang").addEventListener("change", function(){
+  try { localStorage.setItem("crane-lang", this.value); } catch (e) {}
+  applyLang(this.value);
+});
+buildSteps(); applyLang(detectLang()); setModel(MODELS[0], false);
 
 var prevT = performance.now();
 function frame(now){
